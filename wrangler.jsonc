@@ -4,5 +4,9 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "routes": [
+    { "pattern": "mycarenotes.co.uk", "custom_domain": true },
+    { "pattern": "www.mycarenotes.co.uk", "custom_domain": true }
+  ]
 }
