@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { EnvelopeSimpleIcon as Mail, LockIcon as Lock, UserIcon as User, EyeIcon as Eye, EyeSlashIcon as EyeOff, ArrowRightIcon as ArrowRight, ArrowLeftIcon as ArrowLeft, EnvelopeSimpleOpenIcon as MailCheck, PencilSimpleLineIcon as PenLine, SparkleIcon as Sparkles, ShieldCheckIcon as ShieldCheck, ClipboardTextIcon as ClipboardList, WarningIcon as AlertTriangle, ArrowsLeftRightIcon as ArrowLeftRight, PillIcon as Pill, BuildingsIcon as Building2 } from '@phosphor-icons/react';
+import { EnvelopeSimpleIcon as Mail, LockIcon as Lock, UserIcon as User, EyeIcon as Eye, EyeSlashIcon as EyeOff, ArrowRightIcon as ArrowRight, ArrowLeftIcon as ArrowLeft, EnvelopeSimpleOpenIcon as MailCheck, CheckCircleIcon as CheckCircle2, ClipboardTextIcon as ClipboardList, WarningIcon as AlertTriangle, ArrowsLeftRightIcon as ArrowLeftRight, PillIcon as Pill, BuildingsIcon as Building2 } from '@phosphor-icons/react';
 import { supabase } from '../lib/supabase';
 import { FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 import Logo from './Logo';
 
 type Mode = 'signup' | 'login' | 'forgot';
 
-const steps = [
-  { icon: PenLine, title: 'Add your observations', desc: 'Short bullet points or keywords, in your own words.' },
-  { icon: Sparkles, title: 'Receive a draft', desc: 'A structured note in clear, professional language.' },
-  { icon: ShieldCheck, title: 'Review and approve', desc: 'Nothing is final until you have checked it.' },
+// Wording kept from the original page. Three lines were softened so they can be backed up:
+// no unverified testimonial, no specific time-saving figure, and "with CQC standards in mind"
+// rather than "CQC-ready" (CQC does not certify products).
+const benefits = [
+  'Turn bullet points into full, professional care notes in seconds',
+  'Spend less time on documentation every shift',
+  'Secure, private, and only accessible by you',
+  `${FREE_NOTES} free notes included — no card required`,
 ];
 
 const noteTypes = [
-  { icon: ClipboardList, label: 'Daily logs' },
-  { icon: AlertTriangle, label: 'Incident reports' },
-  { icon: ArrowLeftRight, label: 'Handover notes' },
-  { icon: Pill, label: 'Medication notes' },
+  { icon: ClipboardList, label: 'Daily Log', desc: 'routine care activities & observations' },
+  { icon: AlertTriangle, label: 'Incident Report', desc: 'accidents, falls & unexpected events' },
+  { icon: ArrowLeftRight, label: 'Handover Note', desc: 'shift-end summaries for incoming staff' },
+  { icon: Pill, label: 'Medication Note', desc: 'administration records & concerns' },
 ];
 
 function friendlyError(message: string): string {
@@ -86,46 +90,42 @@ export default function AuthPage() {
           <div className="lg:mb-10"><Logo tone="light" /></div>
 
           <div className="mt-8 lg:mt-auto lg:mb-auto">
-            {!PAYMENTS_ENABLED && (
-              <span className="inline-flex items-center gap-2 text-sm font-semibold bg-white/15 border border-white/20 rounded-full px-3.5 py-1.5 mb-5">
-                <span className="w-2 h-2 rounded-full bg-emerald-300" />
-                Free plan: {FREE_NOTES} notes included
-              </span>
-            )}
+            <span className="inline-flex items-center gap-2 text-sm font-semibold bg-white/15 border border-white/20 rounded-full px-3.5 py-1.5 mb-5">
+              <span className="w-2 h-2 rounded-full bg-emerald-300" />
+              AI-powered care documentation
+            </span>
             <h1 className="text-[1.75rem] leading-tight sm:text-4xl xl:text-[2.75rem] xl:leading-[1.12] font-extrabold tracking-tight">
-              Less time on paperwork.<br />
-              <span className="text-brand-100">More time for care.</span>
+              Professional care notes,<br />
+              <span className="text-brand-100">written in seconds.</span>
             </h1>
             <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed text-pretty">
-              Note down a few quick points from your shift, and myCareNotes writes them up as a clear,
-              person-centred care note in seconds. You check it, make any changes, and approve it when
-              you're happy.
+              Transform your quick bullet points into detailed, professional care notes, written with
+              CQC standards in mind, so you can focus on what matters most.
             </p>
 
-            {/* How it works — hidden on small phones to keep the form close to the top */}
-            <ol className="mt-8 space-y-4 hidden sm:block">
-              {steps.map(({ icon: Icon, title, desc }, i) => (
-                <li key={title} className="flex gap-4">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center">
-                    <Icon size={22} />
-                  </div>
-                  <div>
-                    <p className="font-semibold">
-                      <span className="text-brand-200 mr-1.5">{i + 1}.</span>{title}
-                    </p>
-                    <p className="text-sm text-brand-50/80 leading-relaxed">{desc}</p>
-                  </div>
+            <ul className="mt-7 space-y-3">
+              {benefits.map((b) => (
+                <li key={b} className="flex items-start gap-3">
+                  <CheckCircle2 size={22} weight="fill" className="text-emerald-300 flex-shrink-0 mt-px" />
+                  <span className="text-[15px] sm:text-base text-white/95 leading-relaxed">{b}</span>
                 </li>
               ))}
-            </ol>
+            </ul>
 
-            <div className="mt-8 hidden sm:flex flex-wrap gap-2">
-              {noteTypes.map(({ icon: Icon, label }) => (
-                <span key={label} className="inline-flex items-center gap-1.5 text-sm font-medium bg-white/10 border border-white/15 rounded-full px-3 py-1.5">
-                  <Icon size={16} className="text-brand-100" />
-                  {label}
-                </span>
-              ))}
+            {/* Note types — hidden on small phones to keep the form close to the top */}
+            <div className="mt-8 hidden sm:block">
+              <p className="text-xs font-bold text-brand-100 uppercase tracking-wider mb-3">4 note types supported</p>
+              <div className="grid grid-cols-2 gap-2.5">
+                {noteTypes.map(({ icon: Icon, label, desc }) => (
+                  <div key={label} className="flex items-start gap-3 bg-white/10 border border-white/15 rounded-2xl px-3.5 py-3">
+                    <Icon size={22} className="text-brand-100 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold">{label}</p>
+                      <p className="text-xs text-brand-50/80 leading-relaxed">{desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -168,14 +168,14 @@ export default function AuthPage() {
             <>
               <div className="mb-6">
                 <h2 className="text-2xl sm:text-[1.75rem] font-bold tracking-tight">
-                  {mode === 'login' ? 'Welcome back' : mode === 'forgot' ? 'Reset your password' : 'Create your free account'}
+                  {mode === 'login' ? 'Welcome back' : mode === 'forgot' ? 'Reset your password' : 'Get started for free'}
                 </h2>
                 <p className="mt-1.5 text-slate-600">
                   {mode === 'login'
                     ? 'Sign in to write and find your care notes.'
                     : mode === 'forgot'
                     ? "Enter your email and we'll send you a link to set a new password."
-                    : `Free plan includes ${FREE_NOTES} notes. No card required.`}
+                    : 'Create your account and generate your first note in seconds.'}
                 </p>
               </div>
 
