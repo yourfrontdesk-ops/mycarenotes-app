@@ -1,22 +1,36 @@
 import { useState } from 'react';
-import { Mail, Lock, User, Eye, EyeOff, CheckCircle2, ArrowRight } from 'lucide-react';
+import {
+  Mail, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft, MailCheck,
+  PenLine, Sparkles, ShieldCheck, ClipboardList, AlertTriangle, ArrowLeftRight, Pill, Building2,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
+import Logo from './Logo';
 
-type Mode = 'login' | 'signup';
+type Mode = 'signup' | 'login' | 'forgot';
 
-const benefits = [
-  'Turn bullet points into full CQC-ready care notes in seconds',
-  'Saves care workers 2–3 hours of documentation every shift',
-  'Secure, private, and only accessible by you',
-  '2 free notes included — no card required',
+const steps = [
+  { icon: PenLine, title: 'Jot it down', desc: 'Type quick bullet points or keywords, in your own words.' },
+  { icon: Sparkles, title: 'Get a full note', desc: 'myCareNotes turns them into clear, professional prose.' },
+  { icon: ShieldCheck, title: 'Check and approve', desc: 'You review every note before it goes on a record.' },
 ];
 
 const noteTypes = [
-  { label: 'Daily Log', desc: 'routine care activities & observations' },
-  { label: 'Incident Report', desc: 'accidents, falls & unexpected events' },
-  { label: 'Handover Note', desc: 'shift-end summaries for incoming staff' },
-  { label: 'Medication Note', desc: 'administration records & concerns' },
+  { icon: ClipboardList, label: 'Daily logs' },
+  { icon: AlertTriangle, label: 'Incident reports' },
+  { icon: ArrowLeftRight, label: 'Handover notes' },
+  { icon: Pill, label: 'Medication notes' },
 ];
+
+function friendlyError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return "That email and password don't match. Try again, or reset your password.";
+  if (m.includes('email not confirmed')) return 'Please confirm your email first. Check your inbox for the link we sent you.';
+  if (m.includes('already registered')) return 'There is already an account with this email. Try signing in instead.';
+  if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Please wait a few minutes and try again.';
+  if (m.includes('failed to fetch') || m.includes('network')) return 'We could not connect. Please check your internet connection.';
+  return message;
+}
 
 export default function AuthPage() {
   const [mode, setMode] = useState<Mode>('signup');
@@ -26,28 +40,32 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [sentTo, setSentTo] = useState<{ kind: 'confirm' | 'reset'; email: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setLoading(true);
     try {
       if (mode === 'signup') {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: name } },
+          options: { data: { full_name: name }, emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        setSuccess('Account created! You are now signed in.');
-      } else {
+        // With email confirmation on, there is no session until the link is clicked.
+        if (!data.session) setSentTo({ kind: 'confirm', email });
+      } else if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+        if (error) throw error;
+        setSentTo({ kind: 'reset', email });
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(friendlyError(err instanceof Error ? err.message : 'Something went wrong. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -56,229 +74,256 @@ export default function AuthPage() {
   const switchMode = (m: Mode) => {
     setMode(m);
     setError('');
-    setSuccess('');
+    setSentTo(null);
   };
 
   return (
-    <div className="min-h-screen flex" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen flex flex-col lg:flex-row bg-canvas">
 
-      {/* ── Left panel ── */}
-      <div className="hidden md:flex md:w-[48%] bg-gray-950 flex-col justify-center gap-8 p-10 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(14,165,233,0.12)_0%,_transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(14,165,233,0.06)_0%,_transparent_60%)]" />
+      {/* ── Story panel ── */}
+      <aside className="relative overflow-hidden bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 text-white lg:w-[48%] lg:min-h-screen">
+        <div className="absolute -top-32 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 -left-24 w-80 h-80 rounded-full bg-brand-400/20 blur-3xl pointer-events-none" />
 
-        {/* Main copy */}
-        <div className="relative max-w-md mx-auto w-full">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <img src="/logo.png" alt="myCareNotes" className="w-9 h-9 rounded-xl object-cover" />
-            <span className="text-white font-bold text-lg tracking-tight">myCareNotes</span>
-          </div>
+        <div className="relative px-6 py-6 sm:px-10 lg:px-14 lg:py-14 lg:h-full flex flex-col">
+          <Logo tone="light" />
 
-          <div className="inline-flex items-center gap-2 bg-sky-500/10 border border-sky-500/20 rounded-full px-3.5 py-1.5 mb-6">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-            <span className="text-sky-300 text-xs font-medium tracking-wide">AI-powered care documentation</span>
-          </div>
-          <h1 className="text-3xl font-bold text-white leading-tight mb-4">
-            Professional care notes,<br />
-            <span className="text-sky-400">written in seconds.</span>
-          </h1>
-          <p className="text-gray-400 text-base leading-relaxed mb-8 max-w-sm">
-            Transform your quick bullet points into detailed, CQC-ready care notes — so you can focus on what matters most.
-          </p>
-          <ul className="space-y-3.5 mb-8">
-            {benefits.map((b) => (
-              <li key={b} className="flex items-start gap-3">
-                <CheckCircle2 size={17} className="text-sky-400 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-300 text-sm leading-relaxed">{b}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">4 note types supported</p>
-            <div className="grid grid-cols-2 gap-2">
-              {noteTypes.map(({ label, desc }) => (
-                <div key={label} className="bg-white/5 border border-white/10 rounded-xl px-3.5 py-3">
-                  <p className="text-white text-xs font-semibold mb-0.5">{label}</p>
-                  <p className="text-gray-500 text-xs leading-relaxed">{desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Testimonial */}
-          <div className="mt-6 bg-white/5 border border-white/10 rounded-2xl p-5">
-            <p className="text-gray-300 text-sm leading-relaxed italic mb-3">
-              "I used to spend 45 minutes writing notes after every shift. Now it takes me five. This tool has genuinely changed my working life."
+          <div className="mt-8 lg:mt-auto lg:mb-auto max-w-lg">
+            <h1 className="text-[1.75rem] leading-tight sm:text-4xl font-extrabold tracking-tight">
+              Rough shift notes in.<br />
+              <span className="text-brand-100">Clear care records out.</span>
+            </h1>
+            <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed">
+              Write a few quick points about your shift. myCareNotes turns them into a professional,
+              person-centred note in UK English, ready for you to check and add to the care record.
             </p>
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-sky-500/30 flex items-center justify-center">
-                <span className="text-sky-300 text-xs font-bold">JM</span>
-              </div>
-              <div>
-                <p className="text-white text-xs font-semibold">Jessica M.</p>
-                <p className="text-gray-500 text-xs">Senior Care Worker, Birmingham</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* ── Right panel ── */}
-      <div className="flex-1 flex flex-col bg-slate-50 relative overflow-hidden">
+            {/* How it works — hidden on small phones to keep the form close to the top */}
+            <ol className="mt-8 space-y-4 hidden sm:block">
+              {steps.map(({ icon: Icon, title, desc }, i) => (
+                <li key={title} className="flex gap-4">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center">
+                    <Icon size={18} />
+                  </div>
+                  <div>
+                    <p className="font-semibold">
+                      <span className="text-brand-200 mr-1.5">{i + 1}.</span>{title}
+                    </p>
+                    <p className="text-sm text-brand-50/80 leading-relaxed">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
 
-        {/* Subtle background orb */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-100/50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-sky-50/80 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3 pointer-events-none" />
-
-        {/* Mobile header */}
-        <div className="md:hidden relative flex items-center gap-2.5 px-6 py-5 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
-          <img src="/logo.png" alt="myCareNotes" className="w-8 h-8 rounded-xl object-cover" />
-          <span className="font-bold text-gray-900 text-base">myCareNotes</span>
-        </div>
-
-        <div className="flex-1 flex flex-col justify-center px-8 py-12 sm:px-12 relative">
-          <div className="max-w-sm mx-auto w-full">
-
-            {/* Heading */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">
-                {mode === 'login' ? 'Welcome back' : 'Get started for free'}
-              </h2>
-              <p className="text-gray-500 text-sm leading-relaxed">
-                {mode === 'login'
-                  ? 'Sign in to access your care notes.'
-                  : 'Create your account and generate your first note in seconds.'}
-              </p>
-            </div>
-
-            {/* Tab switcher */}
-            <div className="flex rounded-xl bg-white border border-slate-200 p-1 mb-7 shadow-sm">
-              {(['signup', 'login'] as Mode[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => switchMode(m)}
-                  className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 ${
-                    mode === m
-                      ? 'bg-gray-950 text-white shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800'
-                  }`}
-                >
-                  {m === 'login' ? 'Sign In' : 'Sign Up'}
-                </button>
+            <div className="mt-8 hidden sm:flex flex-wrap gap-2">
+              {noteTypes.map(({ icon: Icon, label }) => (
+                <span key={label} className="inline-flex items-center gap-1.5 text-sm font-medium bg-white/10 border border-white/15 rounded-full px-3 py-1.5">
+                  <Icon size={14} className="text-brand-100" />
+                  {label}
+                </span>
               ))}
             </div>
+          </div>
 
-            {/* Form card */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-7">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {mode === 'signup' && (
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=myCareNotes%20for%20our%20care%20service`}
+            className="mt-8 hidden lg:flex items-center gap-3 bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl px-5 py-4 transition-colors max-w-lg"
+          >
+            <Building2 size={20} className="text-brand-100 flex-shrink-0" />
+            <span className="text-sm leading-relaxed">
+              <span className="font-semibold">Run a care service?</span>{' '}
+              <span className="text-brand-50/85">Get in touch to set up myCareNotes for your team.</span>
+            </span>
+            <ArrowRight size={16} className="ml-auto flex-shrink-0" />
+          </a>
+        </div>
+      </aside>
+
+      {/* ── Form panel ── */}
+      <main className="flex-1 flex flex-col justify-center px-5 py-8 sm:px-10 lg:py-12">
+        <div className="max-w-md mx-auto w-full">
+
+          {sentTo ? (
+            <div className="card p-7 sm:p-8 text-center">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-5">
+                <MailCheck size={26} />
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight">Check your email</h2>
+              <p className="mt-3 text-slate-600 leading-relaxed">
+                {sentTo.kind === 'confirm'
+                  ? <>We've sent a link to <strong className="text-slate-900">{sentTo.email}</strong>. Click it to confirm your account and you'll be signed straight in.</>
+                  : <>If there's an account for <strong className="text-slate-900">{sentTo.email}</strong>, we've sent a link to set a new password.</>}
+              </p>
+              <p className="mt-3 text-sm text-slate-500">Can't see it? Check your junk or spam folder.</p>
+              <button onClick={() => switchMode('login')} className="btn-secondary w-full mt-7">
+                <ArrowLeft size={16} />
+                Back to sign in
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl sm:text-[1.75rem] font-bold tracking-tight">
+                  {mode === 'login' ? 'Welcome back' : mode === 'forgot' ? 'Reset your password' : 'Create your free account'}
+                </h2>
+                <p className="mt-1.5 text-slate-600">
+                  {mode === 'login'
+                    ? 'Sign in to write and find your care notes.'
+                    : mode === 'forgot'
+                    ? "Enter your email and we'll send you a link to set a new password."
+                    : 'Your first 2 notes are free. No card needed.'}
+                </p>
+              </div>
+
+              {mode !== 'forgot' && (
+                <div className="grid grid-cols-2 rounded-xl bg-slate-200/70 p-1 mb-6" role="tablist">
+                  {(['signup', 'login'] as Mode[]).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      role="tab"
+                      aria-selected={mode === m}
+                      onClick={() => switchMode(m)}
+                      className={`py-2.5 text-[15px] font-semibold rounded-lg transition-all ${
+                        mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {m === 'login' ? 'Sign in' : 'Sign up'}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="card p-6 sm:p-7">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  {mode === 'signup' && (
+                    <div>
+                      <label htmlFor="name" className="field-label">Your name</label>
+                      <div className="relative">
+                        <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          id="name"
+                          type="text"
+                          autoComplete="name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="e.g. Sarah Ahmed"
+                          required
+                          className="field-input pl-11"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Full Name</label>
+                    <label htmlFor="email" className="field-label">Email address</label>
                     <div className="relative">
-                      <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                       <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Sarah Ahmed"
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@example.co.uk"
                         required
-                        className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors"
+                        className="field-input pl-11"
                       />
                     </div>
                   </div>
-                )}
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
-                  <div className="relative">
-                    <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@careagency.co.uk"
-                      required
-                      className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Password</label>
-                  <div className="relative">
-                    <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
-                      required
-                      minLength={6}
-                      className="w-full pl-10 pr-11 py-3 border border-slate-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-100 text-red-600 text-sm px-4 py-3 rounded-xl">
-                    {error}
-                  </div>
-                )}
-                {success && (
-                  <div className="bg-green-50 border border-green-100 text-green-700 text-sm px-4 py-3 rounded-xl">
-                    {success}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-gray-950 hover:bg-gray-800 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all duration-200 text-sm"
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Please wait...
-                    </span>
-                  ) : (
-                    <>
-                      {mode === 'login' ? 'Sign In' : 'Create Free Account'}
-                      <ArrowRight size={15} />
-                    </>
+                  {mode !== 'forgot' && (
+                    <div>
+                      <div className="flex items-baseline justify-between">
+                        <label htmlFor="password" className="field-label">Password</label>
+                        {mode === 'login' && (
+                          <button
+                            type="button"
+                            onClick={() => switchMode('forgot')}
+                            className="text-sm font-semibold text-brand-600 hover:text-brand-700"
+                          >
+                            Forgot password?
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder={mode === 'signup' ? 'At least 6 characters' : ''}
+                          required
+                          minLength={6}
+                          className="field-input pl-11 pr-12"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-700 rounded-lg"
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
                   )}
-                </button>
-              </form>
-            </div>
 
-            {/* Free trial badge */}
-            {mode === 'signup' && (
-              <div className="mt-4 flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
-                <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-sky-600 text-sm font-bold">2</span>
-                </div>
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  <span className="font-semibold text-gray-900">No card required.</span> Your account includes 2 free notes. Plans from £1.99.
-                </p>
+                  {error && (
+                    <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl leading-relaxed">
+                      {error}
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={loading} className="btn-primary w-full py-3.5">
+                    {loading ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Please wait…
+                      </>
+                    ) : (
+                      <>
+                        {mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : 'Create free account'}
+                        <ArrowRight size={17} />
+                      </>
+                    )}
+                  </button>
+
+                  {mode === 'forgot' && (
+                    <button type="button" onClick={() => switchMode('login')} className="btn-secondary w-full">
+                      <ArrowLeft size={16} />
+                      Back to sign in
+                    </button>
+                  )}
+                </form>
               </div>
-            )}
 
-            <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
-              AI-generated notes should always be reviewed before use in official care records.
-            </p>
+              {mode === 'signup' && (
+                <p className="mt-4 text-sm text-slate-600 text-center">
+                  2 free notes included.{' '}
+                  {PAYMENTS_ENABLED ? 'Paid plans from £1.99.' : 'Paid plans coming soon.'}
+                </p>
+              )}
+            </>
+          )}
 
-          </div>
+          <a
+            href={`mailto:${SUPPORT_EMAIL}?subject=myCareNotes%20for%20our%20care%20service`}
+            className="lg:hidden mt-6 flex items-center gap-3 card px-4 py-3.5 hover:border-brand-300 transition-colors"
+          >
+            <Building2 size={20} className="text-brand-600 flex-shrink-0" />
+            <span className="text-sm text-slate-700">
+              <span className="font-semibold text-slate-900">Run a care service?</span> Get in touch about team access.
+            </span>
+          </a>
+
+          <p className="text-center text-sm text-slate-500 mt-6 leading-relaxed">
+            Always review AI-written notes before adding them to official care records.
+          </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

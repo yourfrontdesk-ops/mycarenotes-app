@@ -4,6 +4,31 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply font-sans antialiased text-slate-900 bg-canvas;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .field-label {
+    @apply block text-sm font-semibold text-slate-700 mb-1.5;
+  }
+  /* 16px text on inputs stops iPhones zooming in when a field is tapped */
+  .field-input {
+    @apply w-full px-4 py-3 border border-slate-300 rounded-xl text-base text-slate-900 placeholder-slate-400 bg-white
+      focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-colors;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-600 hover:bg-brand-700 active:scale-[0.99]
+      text-white font-semibold rounded-xl transition-all text-[15px] shadow-sm
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-3 border border-slate-300 bg-white hover:bg-slate-50
+      text-slate-700 font-semibold rounded-xl transition-all text-[15px]
+      disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-slate-200 shadow-[0_1px_2px_rgba(16,24,40,0.04)];
   }
 }

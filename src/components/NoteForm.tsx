@@ -1,4 +1,4 @@
-import { Sparkles, ChevronDown, RotateCcw } from 'lucide-react';
+import { Sparkles, RotateCcw, ClipboardList, AlertTriangle, ArrowLeftRight, Pill, LucideIcon } from 'lucide-react';
 import { NOTE_TYPES, NoteType, NoteMetadata } from '../types';
 
 export { NOTE_TYPES };
@@ -46,6 +46,13 @@ const SHIFT_PRESETS = [
   { label: 'Night', shift: 'Night shift (23:00–07:00)' },
 ];
 
+const TYPE_META: Record<NoteType, { icon: LucideIcon; hint: string; colour: string }> = {
+  'Daily Log': { icon: ClipboardList, hint: 'Care and wellbeing', colour: 'text-brand-600 bg-brand-50' },
+  'Incident Report': { icon: AlertTriangle, hint: 'Falls, accidents, events', colour: 'text-amber-700 bg-amber-50' },
+  'Handover Note': { icon: ArrowLeftRight, hint: 'For the next shift', colour: 'text-emerald-700 bg-emerald-50' },
+  'Medication Note': { icon: Pill, hint: 'Given, refused, PRN', colour: 'text-rose-700 bg-rose-50' },
+};
+
 interface NoteFormProps {
   noteType: NoteType;
   metadata: NoteMetadata;
@@ -57,9 +64,6 @@ interface NoteFormProps {
   onSubmit: () => void;
   onClear: () => void;
 }
-
-const inputClass =
-  'w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent bg-slate-50 hover:bg-white transition-colors';
 
 export default function NoteForm({
   noteType,
@@ -76,97 +80,92 @@ export default function NoteForm({
   const activePreset = SHIFT_PRESETS.find((p) => p.shift === metadata.shiftTime);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="card overflow-hidden">
+      <div className="p-5 sm:p-7 space-y-6">
 
-      {/* Card header */}
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-bold text-gray-900 tracking-tight">New Note</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Fill in the details below, then generate your note</p>
-        </div>
-        {/* Note type pill selector */}
-        <div className="relative hidden sm:block">
-          <select
-            value={noteType}
-            onChange={(e) => onNoteTypeChange(e.target.value as NoteType)}
-            className="appearance-none text-xs font-semibold pl-3 pr-7 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer hover:bg-white transition-colors"
-          >
-            <option value="" disabled>Select note type</option>
-            {NOTE_TYPES.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-          <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-        </div>
-      </div>
-
-      <div className="p-6 space-y-5">
-
-        {/* Mobile note type */}
-        <div className="sm:hidden">
-          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Note Type</label>
-          <div className="relative">
-            <select
-              value={noteType}
-              onChange={(e) => onNoteTypeChange(e.target.value as NoteType)}
-              className="w-full appearance-none px-4 py-2.5 pr-10 border border-slate-200 rounded-xl text-sm text-gray-800 font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent cursor-pointer"
-            >
-              <option value="" disabled>Select note type</option>
-              {NOTE_TYPES.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        {/* Note type */}
+        <fieldset>
+          <legend className="field-label">What kind of note?</legend>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {NOTE_TYPES.map((type) => {
+              const { icon: Icon, hint, colour } = TYPE_META[type];
+              const active = noteType === type;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onNoteTypeChange(type)}
+                  className={`flex flex-col items-start text-left rounded-xl border-2 p-3 transition-all ${
+                    active
+                      ? 'border-brand-500 bg-brand-50/60 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  }`}
+                >
+                  <span className={`inline-flex w-8 h-8 rounded-lg items-center justify-center ${colour}`}>
+                    <Icon size={17} />
+                  </span>
+                  <span className="block mt-2 text-sm font-semibold text-slate-900 leading-tight">{type}</span>
+                  <span className="block mt-0.5 text-xs text-slate-500 leading-snug">{hint}</span>
+                </button>
+              );
+            })}
           </div>
-        </div>
+        </fieldset>
 
         {/* Names */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Care Worker Name</label>
+            <label htmlFor="worker" className="field-label">Your name</label>
             <input
+              id="worker"
               type="text"
+              autoComplete="name"
               value={metadata.careWorkerName}
               onChange={(e) => onMetadataChange('careWorkerName', e.target.value)}
-              placeholder="Your name"
-              className={inputClass}
+              placeholder="Care worker name"
+              className="field-input"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Resident / Service User</label>
+            <label htmlFor="resident" className="field-label">Person you supported</label>
             <input
+              id="resident"
               type="text"
+              autoComplete="off"
               value={metadata.residentName}
               onChange={(e) => onMetadataChange('residentName', e.target.value)}
-              placeholder="Full name"
-              className={inputClass}
+              placeholder="Resident / service user name"
+              className="field-input"
             />
           </div>
         </div>
 
         {/* Date + Shift */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Date</label>
+            <label htmlFor="date" className="field-label">Date</label>
             <input
+              id="date"
               type="date"
               value={metadata.date}
               onChange={(e) => onMetadataChange('date', e.target.value)}
-              className={inputClass}
+              className="field-input"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Shift / Visit Time</label>
-            <div className="flex gap-1 mb-2 flex-wrap">
+            <span className="field-label" id="shift-label">Shift or visit</span>
+            <div className="grid grid-cols-4 gap-1.5 mb-2" role="group" aria-labelledby="shift-label">
               {SHIFT_PRESETS.map((preset) => (
                 <button
                   key={preset.label}
                   type="button"
+                  aria-pressed={activePreset?.label === preset.label}
                   onClick={() => onMetadataChange('shiftTime', preset.shift)}
-                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all ${
+                  className={`h-10 text-sm font-semibold rounded-lg border transition-colors ${
                     activePreset?.label === preset.label
-                      ? 'bg-gray-950 border-gray-950 text-white'
-                      : 'bg-white border-slate-200 text-gray-500 hover:border-gray-400 hover:text-gray-700'
+                      ? 'bg-brand-600 border-brand-600 text-white'
+                      : 'bg-white border-slate-300 text-slate-700 hover:border-slate-400'
                   }`}
                 >
                   {preset.label}
@@ -175,68 +174,50 @@ export default function NoteForm({
             </div>
             <input
               type="text"
+              aria-labelledby="shift-label"
               value={metadata.shiftTime}
               onChange={(e) => onMetadataChange('shiftTime', e.target.value)}
-              placeholder="or enter custom shift / visit time"
-              className={inputClass}
+              placeholder="or type a visit time, e.g. 10:00–10:45"
+              className="field-input"
             />
           </div>
         </div>
 
         {/* Bullet points */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Notes</label>
-            <span className={`text-xs tabular-nums font-medium ${
-              wordCount === 0 ? 'text-gray-300' : wordCount < 5 ? 'text-amber-500' : 'text-gray-400'
-            }`}>
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="notes" className="field-label">What happened?</label>
+            <span className={`text-sm tabular-nums ${wordCount > 0 && wordCount < 5 ? 'text-amber-700' : 'text-slate-500'}`}>
               {wordCount} {wordCount === 1 ? 'word' : 'words'}
             </span>
           </div>
+          <p className="text-sm text-slate-500 mb-2">Quick bullet points are fine. Only what you write goes in the note.</p>
           <textarea
+            id="notes"
             value={bulletPoints}
             onChange={(e) => onBulletPointsChange(e.target.value)}
             placeholder={PLACEHOLDERS[noteType]}
-            rows={11}
-            className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-gray-800 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent resize-none leading-relaxed bg-slate-50 hover:bg-white transition-colors"
+            rows={10}
+            className="field-input resize-y leading-relaxed min-h-[220px]"
           />
-          <div className="flex items-center justify-between mt-1.5">
-            <p className="text-xs text-gray-400">Rough bullet points or keywords — AI writes the full professional note.</p>
-            <a
-              href="https://www.healthwriterhub.com/write-bullet-points/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors whitespace-nowrap ml-3"
-            >
-              Tips &rarr;
-            </a>
-          </div>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 pt-1">
-          <button
-            onClick={onClear}
-            disabled={isLoading}
-            className="flex items-center justify-center gap-2 px-4 py-3 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed text-gray-600 font-semibold rounded-xl transition-all text-sm"
-          >
-            <RotateCcw size={14} />
+        <div className="flex gap-3">
+          <button onClick={onClear} disabled={isLoading} className="btn-secondary">
+            <RotateCcw size={16} />
             Clear
           </button>
-          <button
-            onClick={onSubmit}
-            disabled={isLoading || !bulletPoints.trim()}
-            className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-950 hover:bg-gray-800 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all text-sm shadow-sm"
-          >
+          <button onClick={onSubmit} disabled={isLoading || !bulletPoints.trim()} className="btn-primary flex-1">
             {isLoading ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating...
+                Writing your note…
               </>
             ) : (
               <>
-                <Sparkles size={15} />
-                Generate Note
+                <Sparkles size={17} />
+                Write my note
               </>
             )}
           </button>

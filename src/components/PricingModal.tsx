@@ -1,6 +1,7 @@
-import { X, Zap, Package, Infinity } from 'lucide-react';
+import { X, Zap, Package, Infinity, Mail, Building2, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 
 interface Props {
   onClose: () => void;
@@ -63,6 +64,58 @@ export default function PricingModal({ onClose }: Props) {
     }
   };
 
+  if (!PAYMENTS_ENABLED) {
+    const plans = [
+      { icon: Zap, name: '10 notes', price: '£1.99', note: 'one-off' },
+      { icon: Package, name: '50 notes', price: '£4.99', note: 'one-off' },
+      { icon: Infinity, name: 'Unlimited', price: '£9.99', note: 'per month' },
+    ];
+    return (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-sm sm:px-4" onClick={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="plans-title"
+          className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start justify-between px-6 pt-6 pb-4">
+            <div>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full px-2.5 py-1 mb-3">
+                <Clock size={12} /> Coming soon
+              </span>
+              <h2 id="plans-title" className="text-xl font-bold tracking-tight">Paid plans are on the way</h2>
+              <p className="text-slate-600 mt-1">We're putting the finishing touches to payments. Here's what's planned:</p>
+            </div>
+            <button onClick={onClose} aria-label="Close" className="w-10 h-10 -mr-2 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="px-6 grid grid-cols-3 gap-2.5">
+            {plans.map(({ icon: Icon, name, price, note }) => (
+              <div key={name} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
+                <Icon size={18} className="mx-auto text-brand-600" />
+                <p className="mt-2 text-sm font-semibold text-slate-900">{name}</p>
+                <p className="text-lg font-bold text-slate-900">{price}</p>
+                <p className="text-xs text-slate-500">{note}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-3">
+            <a href={`mailto:${SUPPORT_EMAIL}?subject=More%20myCareNotes%20credits`} className="btn-primary w-full">
+              <Mail size={17} /> Need more notes now? Email us
+            </a>
+            <a href={`mailto:${SUPPORT_EMAIL}?subject=myCareNotes%20for%20our%20care%20service`} className="btn-secondary w-full">
+              <Building2 size={17} /> Care provider? Ask about team access
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
@@ -82,11 +135,11 @@ export default function PricingModal({ onClose }: Props) {
         <div className="p-6 space-y-4">
 
           {/* 10-credit pack */}
-          <div className="border border-gray-200 rounded-xl p-5 hover:border-sky-300 hover:shadow-sm transition-all">
+          <div className="border border-gray-200 rounded-xl p-5 hover:border-brand-300 hover:shadow-sm transition-all">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center">
-                  <Zap size={18} className="text-sky-600" />
+                <div className="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center">
+                  <Zap size={18} className="text-brand-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">Credit Pack – 10 Notes</h3>
@@ -101,7 +154,7 @@ export default function PricingModal({ onClose }: Props) {
             <ul className="space-y-1.5 mb-4">
               {features.credits_10.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="w-4 h-4 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
+                  <span className="w-4 h-4 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
                   {f}
                 </li>
               ))}
@@ -109,18 +162,18 @@ export default function PricingModal({ onClose }: Props) {
             <button
               onClick={() => handlePurchase('credits_10')}
               disabled={loading !== null}
-              className="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all"
+              className="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all"
             >
               {loading === 'credits_10' ? 'Redirecting...' : 'Buy 10 Credits — £1.99'}
             </button>
           </div>
 
           {/* 50-credit pack */}
-          <div className="border border-gray-200 rounded-xl p-5 hover:border-sky-300 hover:shadow-sm transition-all">
+          <div className="border border-gray-200 rounded-xl p-5 hover:border-brand-300 hover:shadow-sm transition-all">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-sky-50 rounded-xl flex items-center justify-center">
-                  <Package size={18} className="text-sky-600" />
+                <div className="w-10 h-10 bg-brand-50 rounded-xl flex items-center justify-center">
+                  <Package size={18} className="text-brand-600" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">Credit Pack – 50 Notes</h3>
@@ -135,7 +188,7 @@ export default function PricingModal({ onClose }: Props) {
             <ul className="space-y-1.5 mb-4">
               {features.credits_50.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="w-4 h-4 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
+                  <span className="w-4 h-4 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
                   {f}
                 </li>
               ))}
@@ -143,20 +196,20 @@ export default function PricingModal({ onClose }: Props) {
             <button
               onClick={() => handlePurchase('credits_50')}
               disabled={loading !== null}
-              className="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all"
+              className="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all"
             >
               {loading === 'credits_50' ? 'Redirecting...' : 'Buy 50 Credits — £4.99'}
             </button>
           </div>
 
           {/* Monthly unlimited */}
-          <div className="border-2 border-sky-500 rounded-xl p-5 relative shadow-sm">
+          <div className="border-2 border-brand-500 rounded-xl p-5 relative shadow-sm">
             <div className="absolute -top-3 left-5">
-              <span className="bg-sky-600 text-white text-xs font-bold px-3 py-1 rounded-full">Most popular</span>
+              <span className="bg-brand-600 text-white text-xs font-bold px-3 py-1 rounded-full">Most popular</span>
             </div>
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-sky-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center">
                   <Infinity size={18} className="text-white" />
                 </div>
                 <div>
@@ -172,7 +225,7 @@ export default function PricingModal({ onClose }: Props) {
             <ul className="space-y-1.5 mb-4">
               {features.monthly.map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="w-4 h-4 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
+                  <span className="w-4 h-4 rounded-full bg-brand-100 text-brand-600 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
                   {f}
                 </li>
               ))}
@@ -180,7 +233,7 @@ export default function PricingModal({ onClose }: Props) {
             <button
               onClick={() => handlePurchase('monthly')}
               disabled={loading !== null}
-              className="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all"
+              className="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-all"
             >
               {loading === 'monthly' ? 'Redirecting...' : 'Subscribe — £9.99/mo'}
             </button>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { History, LogOut, Plus, X, CreditCard, Zap } from 'lucide-react';
+import { History, LogOut, Plus, X, Infinity as InfinityIcon, Zap } from 'lucide-react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, GENERATE_NOTE_URL } from './lib/supabase';
 import { NoteType, NoteMetadata, Note } from './types';
@@ -9,6 +9,9 @@ import ClearConfirmModal from './components/ClearConfirmModal';
 import AuthPage from './components/AuthPage';
 import NoteHistory from './components/NoteHistory';
 import PricingModal from './components/PricingModal';
+import ResetPassword from './components/ResetPassword';
+import Logo from './components/Logo';
+import { SUPPORT_EMAIL } from './lib/config';
 
 const CARE_WORKER_NAME_KEY = 'carenote_care_worker_name';
 
@@ -28,11 +31,13 @@ function emptyMetadata(name = ''): NoteMetadata {
 interface UserEntitlement {
   credits: number;
   hasActiveSub: boolean;
+  isUnlimited: boolean;
 }
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [recoveringPassword, setRecoveringPassword] = useState(false);
 
   const [showClearModal, setShowClearModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -56,7 +61,9 @@ export default function App() {
       setAuthLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Arriving from a "reset password" email link
+      if (event === 'PASSWORD_RECOVERY') setRecoveringPassword(true);
       setSession(session);
     });
 
@@ -75,7 +82,7 @@ export default function App() {
 
   const fetchEntitlement = useCallback(async () => {
     const [{ data: creditRow }, { data: subRow }] = await Promise.all([
-      supabase.from('user_credits').select('credits').maybeSingle(),
+      supabase.from('user_credits').select('credits, is_unlimited').maybeSingle(),
       supabase.from('user_subscriptions').select('status, current_period_end').maybeSingle(),
     ]);
 
@@ -87,6 +94,7 @@ export default function App() {
     setEntitlement({
       credits: creditRow?.credits ?? 0,
       hasActiveSub: !!hasActiveSub,
+      isUnlimited: creditRow?.is_unlimited === true,
     });
   }, []);
 
@@ -155,6 +163,7 @@ export default function App() {
       } else {
         setGeneratedNote(data.note);
         fetchEntitlement();
+        setTimeout(() => document.getElementById('note-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
       }
     } catch {
       setError('Network error. Please check your connection and try again.');
@@ -228,10 +237,14 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-gray-800 rounded-full animate-spin" />
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
       </div>
     );
+  }
+
+  if (recoveringPassword) {
+    return <ResetPassword onDone={() => setRecoveringPassword(false)} />;
   }
 
   if (!session) {
@@ -246,89 +259,74 @@ export default function App() {
     .join('')
     .toUpperCase();
 
+  const unlimited = !!entitlement && (entitlement.isUnlimited || entitlement.hasActiveSub);
+  const outOfCredits = !!entitlement && !unlimited && entitlement.credits === 0;
+
   return (
-    <div className="min-h-screen bg-slate-50" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+    <div className="min-h-screen bg-canvas">
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+      <header className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+          <Logo size="sm" />
 
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 flex-shrink-0">
-            <img src="/logo.png" alt="myCareNotes" className="w-7 h-7 rounded-lg object-cover" />
-            <span className="text-sm font-bold text-gray-900 tracking-tight hidden sm:block">myCareNotes</span>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={handleNewNote}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-slate-100 rounded-lg transition-all"
-            >
-              <Plus size={13} />
-              <span className="hidden sm:inline">New Note</span>
-            </button>
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {entitlement && (
+              <button
+                onClick={() => setShowPricing(true)}
+                title={unlimited ? 'Unlimited notes' : 'Notes remaining'}
+                className={`flex items-center gap-1.5 h-10 px-3 text-sm font-semibold rounded-xl border transition-colors ${
+                  unlimited
+                    ? 'border-brand-200 bg-brand-50 text-brand-700'
+                    : outOfCredits
+                    ? 'border-red-200 bg-red-50 text-red-700'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {unlimited ? <InfinityIcon size={16} /> : <Zap size={15} className={outOfCredits ? '' : 'text-amber-500'} />}
+                <span>{unlimited ? 'Unlimited' : `${entitlement.credits}`}</span>
+                {!unlimited && <span className="hidden sm:inline font-medium">{entitlement.credits === 1 ? 'note left' : 'notes left'}</span>}
+              </button>
+            )}
 
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                showHistory ? 'bg-gray-950 text-white' : 'text-gray-600 hover:text-gray-900 hover:bg-slate-100'
+              aria-label={showHistory ? 'Close history' : 'History'}
+              className={`flex items-center gap-1.5 h-10 px-3 text-sm font-semibold rounded-xl transition-colors ${
+                showHistory ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
               }`}
             >
-              {showHistory ? <X size={13} /> : <History size={13} />}
+              {showHistory ? <X size={17} /> : <History size={17} />}
               <span className="hidden sm:inline">{showHistory ? 'Close' : 'History'}</span>
               {!showHistory && notes.length > 0 && (
-                <span className="bg-sky-100 text-sky-700 text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">
+                <span className="bg-brand-100 text-brand-700 text-xs font-bold px-1.5 py-0.5 rounded-full leading-none">
                   {notes.length}
                 </span>
               )}
             </button>
 
-            {entitlement && (
-              <button
-                onClick={() => setShowPricing(true)}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
+            <div className="hidden sm:flex items-center pl-2 ml-1 border-l border-slate-200 h-8">
+              <div
+                className="w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center"
+                title={user.user_metadata?.full_name || user.email}
               >
-                {entitlement.hasActiveSub ? (
-                  <>
-                    <CreditCard size={12} className="text-sky-600" />
-                    <span className="text-sky-700">Unlimited</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap size={12} className="text-amber-500" />
-                    <span className={entitlement.credits === 0 ? 'text-red-600' : 'text-gray-700'}>
-                      {entitlement.credits} {entitlement.credits === 1 ? 'credit' : 'credits'}
-                    </span>
-                  </>
-                )}
-              </button>
-            )}
-
-            <div className="w-px h-4 bg-slate-200 mx-1 hidden sm:block" />
-
-            <div className="hidden sm:flex items-center gap-2 pl-1">
-              <div className="w-6 h-6 bg-gray-950 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-white">{initials}</span>
+                <span className="text-xs font-bold text-white">{initials}</span>
               </div>
-              <span className="text-xs text-gray-500 max-w-[110px] truncate">
-                {user.user_metadata?.full_name || user.email}
-              </span>
             </div>
 
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-500 hover:text-gray-800 hover:bg-slate-100 rounded-lg transition-all"
+              aria-label="Sign out"
               title="Sign out"
+              className="flex items-center justify-center w-10 h-10 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors"
             >
-              <LogOut size={13} />
-              <span className="hidden sm:inline">Sign out</span>
+              <LogOut size={17} />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      <main className="max-w-3xl mx-auto px-4 py-5 sm:py-8">
         {showHistory ? (
           <div className="space-y-4">
             <NoteHistory
@@ -338,20 +336,29 @@ export default function App() {
               isOpen={true}
             />
             {notesLoading && (
-              <p className="text-xs text-center text-gray-400">Loading notes...</p>
+              <p className="text-sm text-center text-slate-500">Loading notes…</p>
             )}
           </div>
         ) : (
           <div className="space-y-4">
-            {entitlement && !entitlement.hasActiveSub && entitlement.credits === 0 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-                <p className="text-sm text-amber-800 font-medium">You have no credits remaining.</p>
+            {outOfCredits && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3">
+                <p className="text-[15px] text-amber-900 font-medium">You've used your free notes.</p>
                 <button
                   onClick={() => setShowPricing(true)}
-                  className="flex-shrink-0 text-xs font-semibold text-white bg-amber-500 hover:bg-amber-600 px-3 py-1.5 rounded-lg transition-all"
+                  className="flex-shrink-0 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-xl transition-colors"
                 >
-                  Get credits
+                  Get more
                 </button>
+              </div>
+            )}
+
+            {!generatedNote && !error && notes.length === 0 && (
+              <div className="px-1">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  Hi{user.user_metadata?.full_name ? ` ${String(user.user_metadata.full_name).split(' ')[0]}` : ''} 👋
+                </h1>
+                <p className="mt-1 text-slate-600">Jot down what happened on your shift and we'll write it up properly.</p>
               </div>
             )}
 
@@ -373,6 +380,7 @@ export default function App() {
             />
 
             {(generatedNote || error) && (
+              <div id="note-result" className="scroll-mt-20">
               <NoteResult
                 note={generatedNote}
                 error={error}
@@ -386,19 +394,24 @@ export default function App() {
                   setIsSaved(false);
                 }}
               />
+              </div>
             )}
 
-            <div className="text-center pb-2 space-y-1.5">
-              <p className="text-xs text-gray-400">
-                Always review AI-generated notes before adding to official care records.
+            {generatedNote && (
+              <button onClick={handleNewNote} className="btn-secondary w-full">
+                <Plus size={17} />
+                Start a new note
+              </button>
+            )}
+
+            <div className="text-center pt-2 pb-4 space-y-1.5">
+              <p className="text-sm text-slate-500">
+                Always review AI-written notes before adding them to official care records.
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-sm text-slate-500">
                 Need help?{' '}
-                <a
-                  href="mailto:help@mycarenotes.co.uk"
-                  className="text-sky-600 hover:text-sky-700 hover:underline font-medium transition-colors"
-                >
-                  help@mycarenotes.co.uk
+                <a href={`mailto:${SUPPORT_EMAIL}`} className="text-brand-600 hover:text-brand-700 font-semibold">
+                  {SUPPORT_EMAIL}
                 </a>
               </p>
             </div>
