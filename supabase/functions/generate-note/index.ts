@@ -75,6 +75,21 @@ The note must clearly document:
 Comply with NMC and CQC medication management standards. Be precise with drug names, doses, and times. Only document what was explicitly provided.`,
 };
 
+const DEMO_EMAIL = "demo@mycarenotes.co.uk";
+const MAX_INPUT_CHARS = 3000;
+const DEMO_PER_VISITOR_PER_HOUR = 3;
+const DEMO_PER_DAY = 50;
+
+// Identify a demo visitor by a one-way hash of their IP address (the IP itself is never stored)
+async function hashVisitor(req: Request): Promise<string> {
+  const ip = req.headers.get("cf-connecting-ip")
+    || (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim()
+    || "unknown";
+  const salt = Deno.env.get("SUPABASE_URL") ?? "mycarenotes";
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}:${ip}`));
+  return Array.from(new Uint8Array(digest)).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -112,59 +127,78 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Use service role to check and mutate credits
+    const json = (status: number, body: Record<string, unknown>) =>
+      new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    const { noteType, bulletPoints, metadata } = await req.json();
+
+    if (!noteType || !bulletPoints) {
+      return json(400, { error: "Note type and observations are required." });
+    }
+    if (String(bulletPoints).length > MAX_INPUT_CHARS) {
+      return json(400, { error: `Observations must be ${MAX_INPUT_CHARS.toLocaleString("en-GB")} characters or fewer.` });
+    }
+
+    // Service role: check and update allowances
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Check credits row (includes is_unlimited flag)
-    const { data: creditRow } = await supabaseAdmin
-      .from("user_credits")
-      .select("credits, is_unlimited")
-      .eq("user_id", user.id)
-      .maybeSingle();
+    const isDemo = (user.email ?? "").toLowerCase() === DEMO_EMAIL;
+    let chargeCredits: number | null = null; // credits before this note, when a credit should be used
 
-    const isUnlimited = creditRow?.is_unlimited === true;
+    if (isDemo) {
+      // Shared demo: limit per visitor per hour and in total per day (resets automatically)
+      const visitor = await hashVisitor(req);
+      const now = Date.now();
+      const startOfDay = new Date(); startOfDay.setUTCHours(0, 0, 0, 0);
 
-    if (!isUnlimited) {
-      // Check active subscription
-      const { data: sub } = await supabaseAdmin
-        .from("user_subscriptions")
-        .select("status, current_period_end")
+      await supabaseAdmin.from("demo_usage").delete().lt("created_at", new Date(now - 2 * 864e5).toISOString());
+
+      const { count: todayCount } = await supabaseAdmin
+        .from("demo_usage").select("id", { count: "exact", head: true })
+        .gte("created_at", startOfDay.toISOString());
+      if ((todayCount ?? 0) >= DEMO_PER_DAY) {
+        return json(429, { error: "The demo has reached its daily limit. Please create a free account to continue." });
+      }
+
+      const { count: visitorCount } = await supabaseAdmin
+        .from("demo_usage").select("id", { count: "exact", head: true })
+        .eq("visitor", visitor)
+        .gte("created_at", new Date(now - 3600e3).toISOString());
+      if ((visitorCount ?? 0) >= DEMO_PER_VISITOR_PER_HOUR) {
+        return json(429, { error: `The demo is limited to ${DEMO_PER_VISITOR_PER_HOUR} notes per hour. Please create a free account to continue.` });
+      }
+
+      await supabaseAdmin.from("demo_usage").insert({ visitor });
+    } else {
+      const { data: creditRow } = await supabaseAdmin
+        .from("user_credits")
+        .select("credits, is_unlimited")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      const hasActiveSub =
-        sub?.status === "active" &&
-        sub?.current_period_end &&
-        new Date(sub.current_period_end) > new Date();
+      if (creditRow?.is_unlimited !== true) {
+        const { data: sub } = await supabaseAdmin
+          .from("user_subscriptions")
+          .select("status, current_period_end")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (!hasActiveSub) {
-        const credits = creditRow?.credits ?? 0;
+        const hasActiveSub =
+          sub?.status === "active" &&
+          sub?.current_period_end &&
+          new Date(sub.current_period_end) > new Date();
 
-        if (credits <= 0) {
-          return new Response(
-            JSON.stringify({ error: "NO_CREDITS", message: "You have no credits remaining. Please purchase a plan to continue." }),
-            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
+        if (!hasActiveSub) {
+          const credits = creditRow?.credits ?? 0;
+          if (credits <= 0) {
+            return json(402, { error: "NO_CREDITS", message: "You have no notes remaining on your plan." });
+          }
+          chargeCredits = credits;
         }
-
-        // Deduct one credit
-        await supabaseAdmin
-          .from("user_credits")
-          .update({ credits: credits - 1, updated_at: new Date().toISOString() })
-          .eq("user_id", user.id);
       }
-    }
-
-    const { noteType, bulletPoints, metadata } = await req.json();
-
-    if (!noteType || !bulletPoints) {
-      return new Response(
-        JSON.stringify({ error: "Note type and bullet points are required." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
     const systemPrompt = NOTE_TYPE_PROMPTS[noteType] || NOTE_TYPE_PROMPTS["Daily Log"];
@@ -214,6 +248,14 @@ Write the complete, professional note now. Begin with the header (name, date, sh
 
     const data = await response.json();
     const generatedNote = data.content[0]?.text || "";
+
+    // Use a credit only once the note has been generated successfully
+    if (chargeCredits !== null && generatedNote) {
+      await supabaseAdmin
+        .from("user_credits")
+        .update({ credits: Math.max(0, chargeCredits - 1), updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+    }
 
     return new Response(
       JSON.stringify({ note: generatedNote }),

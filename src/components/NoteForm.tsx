@@ -40,6 +40,9 @@ const PLACEHOLDERS: Record<NoteType, string> = {
 - calm within 30 mins, no side effects noted`,
 };
 
+// Must match MAX_INPUT_CHARS in supabase/functions/generate-note/index.ts
+const MAX_CHARS = 3000;
+
 const SHIFT_PRESETS = [
   { label: 'Morning', shift: 'Morning shift (07:00–14:00)' },
   { label: 'Afternoon', shift: 'Afternoon shift (14:00–21:00)' },
@@ -200,8 +203,10 @@ export default function NoteForm({
         <div>
           <div className="flex items-baseline justify-between">
             <label htmlFor="notes" className="field-label">Observations</label>
-            <span className={`text-sm tabular-nums ${wordCount > 0 && wordCount < 5 ? 'text-amber-700' : 'text-slate-500'}`}>
-              {wordCount} {wordCount === 1 ? 'word' : 'words'}
+            <span className={`text-sm tabular-nums ${bulletPoints.length > MAX_CHARS * 0.9 ? 'text-amber-700 font-semibold' : 'text-slate-500'}`}>
+              {bulletPoints.length > MAX_CHARS * 0.8
+                ? `${bulletPoints.length.toLocaleString('en-GB')} / ${MAX_CHARS.toLocaleString('en-GB')} characters`
+                : `${wordCount} ${wordCount === 1 ? 'word' : 'words'}`}
             </span>
           </div>
           <p className="text-sm text-slate-500 mb-2">Enter brief bullet points or keywords. Only the information you provide will be included in the note.</p>
@@ -211,6 +216,7 @@ export default function NoteForm({
             onChange={(e) => onBulletPointsChange(e.target.value)}
             placeholder={PLACEHOLDERS[noteType]}
             rows={10}
+            maxLength={MAX_CHARS}
             className="field-input resize-y leading-relaxed min-h-[220px]"
           />
         </div>
