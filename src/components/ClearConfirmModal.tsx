@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import { WarningIcon as AlertTriangle } from '@phosphor-icons/react';
 
 interface ClearConfirmModalProps {
   isOpen: boolean;

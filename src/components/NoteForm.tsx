@@ -1,4 +1,5 @@
-import { Sparkles, RotateCcw, ClipboardList, AlertTriangle, ArrowLeftRight, Pill, LucideIcon } from 'lucide-react';
+import { CheckCircleIcon, SparkleIcon as Sparkles, ArrowCounterClockwiseIcon as RotateCcw, ClipboardTextIcon as ClipboardList, WarningIcon as AlertTriangle, ArrowsLeftRightIcon as ArrowLeftRight, PillIcon as Pill } from '@phosphor-icons/react';
+import type { Icon as LucideIcon } from '@phosphor-icons/react';
 import { NOTE_TYPES, NoteType, NoteMetadata } from '../types';
 
 export { NOTE_TYPES };
@@ -46,11 +47,24 @@ const SHIFT_PRESETS = [
   { label: 'Night', shift: 'Night shift (23:00–07:00)' },
 ];
 
-const TYPE_META: Record<NoteType, { icon: LucideIcon; hint: string; colour: string }> = {
-  'Daily Log': { icon: ClipboardList, hint: 'Care and wellbeing', colour: 'text-brand-600 bg-brand-50' },
-  'Incident Report': { icon: AlertTriangle, hint: 'Falls, accidents, events', colour: 'text-amber-700 bg-amber-50' },
-  'Handover Note': { icon: ArrowLeftRight, hint: 'For the next shift', colour: 'text-emerald-700 bg-emerald-50' },
-  'Medication Note': { icon: Pill, hint: 'Given, refused, PRN', colour: 'text-rose-700 bg-rose-50' },
+// Full class names written out so Tailwind keeps them in the build
+const TYPE_META: Record<NoteType, { icon: LucideIcon; hint: string; tile: string; idle: string; active: string; tick: string }> = {
+  'Daily Log': {
+    icon: ClipboardList, hint: 'Care and wellbeing', tile: 'bg-brand-500', tick: 'text-brand-600',
+    idle: 'bg-brand-50/60 border-brand-100 hover:border-brand-300', active: 'bg-brand-50 border-brand-500 ring-4 ring-brand-500/15',
+  },
+  'Incident Report': {
+    icon: AlertTriangle, hint: 'Falls, accidents, events', tile: 'bg-amber-500', tick: 'text-amber-600',
+    idle: 'bg-amber-50/60 border-amber-100 hover:border-amber-300', active: 'bg-amber-50 border-amber-500 ring-4 ring-amber-500/15',
+  },
+  'Handover Note': {
+    icon: ArrowLeftRight, hint: 'For the next shift', tile: 'bg-emerald-500', tick: 'text-emerald-600',
+    idle: 'bg-emerald-50/60 border-emerald-100 hover:border-emerald-300', active: 'bg-emerald-50 border-emerald-500 ring-4 ring-emerald-500/15',
+  },
+  'Medication Note': {
+    icon: Pill, hint: 'Given, refused, PRN', tile: 'bg-rose-500', tick: 'text-rose-600',
+    idle: 'bg-rose-50/60 border-rose-100 hover:border-rose-300', active: 'bg-rose-50 border-rose-500 ring-4 ring-rose-500/15',
+  },
 };
 
 interface NoteFormProps {
@@ -88,7 +102,7 @@ export default function NoteForm({
           <legend className="field-label">What kind of note?</legend>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {NOTE_TYPES.map((type) => {
-              const { icon: Icon, hint, colour } = TYPE_META[type];
+              const { icon: Icon, hint, tile, idle, active: activeCls, tick } = TYPE_META[type];
               const active = noteType === type;
               return (
                 <button
@@ -96,17 +110,16 @@ export default function NoteForm({
                   type="button"
                   aria-pressed={active}
                   onClick={() => onNoteTypeChange(type)}
-                  className={`flex flex-col items-start text-left rounded-xl border-2 p-3 transition-all ${
-                    active
-                      ? 'border-brand-500 bg-brand-50/60 shadow-sm'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+                  className={`relative flex flex-col items-start text-left rounded-2xl border-2 p-3.5 transition-all ${
+                    active ? activeCls : idle
                   }`}
                 >
-                  <span className={`inline-flex w-8 h-8 rounded-lg items-center justify-center ${colour}`}>
-                    <Icon size={17} />
+                  {active && <CheckCircleIcon size={20} weight="fill" className={`absolute top-3 right-3 ${tick}`} />}
+                  <span className={`inline-flex w-10 h-10 rounded-xl items-center justify-center text-white shadow-sm ${tile}`}>
+                    <Icon size={22} weight="fill" />
                   </span>
-                  <span className="block mt-2 text-sm font-semibold text-slate-900 leading-tight">{type}</span>
-                  <span className="block mt-0.5 text-xs text-slate-500 leading-snug">{hint}</span>
+                  <span className="block mt-2.5 text-sm font-bold text-slate-900 leading-tight">{type}</span>
+                  <span className="block mt-0.5 text-xs text-slate-600 leading-snug">{hint}</span>
                 </button>
               );
             })}

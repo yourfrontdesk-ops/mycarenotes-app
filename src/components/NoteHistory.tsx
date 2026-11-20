@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Clock, FileText, User, Trash2, ChevronRight, Search, X } from 'lucide-react';
+import { ClockIcon as Clock, FileTextIcon as FileText, UserIcon as User, TrashIcon as Trash2, CaretRightIcon as ChevronRight, MagnifyingGlassIcon as Search, XIcon as X } from '@phosphor-icons/react';
 import { Note, NoteType, NOTE_TYPES } from '../types';
 
 const NOTE_TYPE_COLORS: Record<NoteType, string> = {

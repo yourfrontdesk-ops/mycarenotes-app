@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { LockIcon as Lock, EyeIcon as Eye, EyeSlashIcon as EyeOff, KeyIcon as KeyRound } from '@phosphor-icons/react';
 import { supabase } from '../lib/supabase';
 import Logo from './Logo';
 

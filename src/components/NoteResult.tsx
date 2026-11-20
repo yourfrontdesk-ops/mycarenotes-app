@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, FileText, AlertCircle, Printer, Save, Pencil, ShieldCheck, X } from 'lucide-react';
+import { CopyIcon as Copy, CheckIcon as Check, FileTextIcon as FileText, WarningCircleIcon as AlertCircle, PrinterIcon as Printer, FloppyDiskIcon as Save, PencilSimpleIcon as Pencil, ShieldCheckIcon as ShieldCheck, XIcon as X } from '@phosphor-icons/react';
 import { NoteType, NoteMetadata } from '../types';
 
 interface NoteResultProps {

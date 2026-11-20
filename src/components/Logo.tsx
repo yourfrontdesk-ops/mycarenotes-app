@@ -1,4 +1,4 @@
-import { ClipboardCheck } from 'lucide-react';
+import { ClipboardTextIcon as ClipboardCheck } from '@phosphor-icons/react';
 
 interface LogoProps {
   size?: 'sm' | 'md';
@@ -12,7 +12,7 @@ export default function Logo({ size = 'md', tone = 'dark' }: LogoProps) {
   return (
     <div className="flex items-center gap-2.5">
       <div className={`${box} ${tone === 'light' ? 'bg-white text-brand-600' : 'bg-brand-500 text-white'} flex items-center justify-center shadow-sm`}>
-        <ClipboardCheck size={icon} strokeWidth={2.25} />
+        <ClipboardCheck size={icon} weight="fill" />
       </div>
       <span className={`${text} font-bold tracking-tight ${tone === 'light' ? 'text-white' : 'text-slate-900'}`}>
         my<span className={tone === 'light' ? 'text-brand-100' : 'text-brand-600'}>Care</span>Notes

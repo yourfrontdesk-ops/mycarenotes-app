@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import {
-  Mail, Lock, User, Eye, EyeOff, ArrowRight, ArrowLeft, MailCheck,
-  PenLine, Sparkles, ShieldCheck, ClipboardList, AlertTriangle, ArrowLeftRight, Pill, Building2,
-} from 'lucide-react';
+import { EnvelopeSimpleIcon as Mail, LockIcon as Lock, UserIcon as User, EyeIcon as Eye, EyeSlashIcon as EyeOff, ArrowRightIcon as ArrowRight, ArrowLeftIcon as ArrowLeft, EnvelopeSimpleOpenIcon as MailCheck, PencilSimpleLineIcon as PenLine, SparkleIcon as Sparkles, ShieldCheckIcon as ShieldCheck, ClipboardTextIcon as ClipboardList, WarningIcon as AlertTriangle, ArrowsLeftRightIcon as ArrowLeftRight, PillIcon as Pill, BuildingsIcon as Building2 } from '@phosphor-icons/react';
 import { supabase } from '../lib/supabase';
 import { FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 import Logo from './Logo';
@@ -92,7 +89,7 @@ export default function AuthPage() {
             {!PAYMENTS_ENABLED && (
               <span className="inline-flex items-center gap-2 text-sm font-semibold bg-white/15 border border-white/20 rounded-full px-3.5 py-1.5 mb-5">
                 <span className="w-2 h-2 rounded-full bg-emerald-300" />
-                Free during launch: {FREE_NOTES} notes per account
+                Free plan: {FREE_NOTES} notes included
               </span>
             )}
             <h1 className="text-[1.75rem] leading-tight sm:text-4xl xl:text-[2.75rem] xl:leading-[1.12] font-extrabold tracking-tight">
@@ -110,7 +107,7 @@ export default function AuthPage() {
               {steps.map(({ icon: Icon, title, desc }, i) => (
                 <li key={title} className="flex gap-4">
                   <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center">
-                    <Icon size={18} />
+                    <Icon size={22} />
                   </div>
                   <div>
                     <p className="font-semibold">
@@ -125,7 +122,7 @@ export default function AuthPage() {
             <div className="mt-8 hidden sm:flex flex-wrap gap-2">
               {noteTypes.map(({ icon: Icon, label }) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-sm font-medium bg-white/10 border border-white/15 rounded-full px-3 py-1.5">
-                  <Icon size={14} className="text-brand-100" />
+                  <Icon size={16} className="text-brand-100" />
                   {label}
                 </span>
               ))}
@@ -178,7 +175,7 @@ export default function AuthPage() {
                     ? 'Sign in to write and find your care notes.'
                     : mode === 'forgot'
                     ? "Enter your email and we'll send you a link to set a new password."
-                    : `Your first ${FREE_NOTES} notes are free. No card needed.`}
+                    : `Free plan includes ${FREE_NOTES} notes. No card required.`}
                 </p>
               </div>
 

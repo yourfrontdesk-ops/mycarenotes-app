@@ -1,4 +1,4 @@
-import { X, Zap, Package, Infinity, Mail, Building2, Clock } from 'lucide-react';
+import { XIcon as X, LightningIcon as Zap, PackageIcon as Package, InfinityIcon as Infinity, EnvelopeSimpleIcon as Mail, BuildingsIcon as Building2, ClockIcon as Clock } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';

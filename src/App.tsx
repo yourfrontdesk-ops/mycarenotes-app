@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { History, LogOut, Plus, X, Infinity as InfinityIcon, Zap } from 'lucide-react';
+import { ClockCounterClockwiseIcon as History, SignOutIcon as LogOut, PlusIcon as Plus, XIcon as X, InfinityIcon, FileTextIcon } from '@phosphor-icons/react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, GENERATE_NOTE_URL } from './lib/supabase';
 import { NoteType, NoteMetadata, Note } from './types';
@@ -274,7 +274,7 @@ export default function App() {
             {entitlement && (
               <button
                 onClick={() => setShowPricing(true)}
-                title={unlimited ? 'Unlimited notes' : 'Notes remaining'}
+                title={unlimited ? 'Unlimited notes' : `Free plan: ${entitlement.credits} of ${FREE_NOTES} notes remaining`}
                 className={`flex items-center gap-1.5 h-10 px-3 text-sm font-semibold rounded-xl border transition-colors ${
                   unlimited
                     ? 'border-brand-200 bg-brand-50 text-brand-700'
@@ -283,9 +283,15 @@ export default function App() {
                     : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                 }`}
               >
-                {unlimited ? <InfinityIcon size={16} /> : <Zap size={15} className={outOfCredits ? '' : 'text-amber-500'} />}
-                <span>{unlimited ? 'Unlimited' : `${entitlement.credits}`}</span>
-                {!unlimited && <span className="hidden sm:inline font-medium">{entitlement.credits === 1 ? 'free note left' : 'free notes left'}</span>}
+                {unlimited ? <InfinityIcon size={17} /> : <FileTextIcon size={17} className={outOfCredits ? '' : 'text-brand-600'} />}
+                {unlimited ? (
+                  <span>Unlimited</span>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline font-medium text-slate-500">Free plan ·</span>
+                    <span>{entitlement.credits} <span className="font-medium">remaining</span></span>
+                  </>
+                )}
               </button>
             )}
 
@@ -343,12 +349,12 @@ export default function App() {
           <div className="space-y-4">
             {outOfCredits && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3">
-                <p className="text-[15px] text-amber-900 font-medium">You've used your {FREE_NOTES} free notes. Get in touch if you'd like more.</p>
+                <p className="text-[15px] text-amber-900 font-medium">You've used the {FREE_NOTES} notes included in the free plan. Contact us to continue.</p>
                 <button
                   onClick={() => setShowPricing(true)}
                   className="flex-shrink-0 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-xl transition-colors"
                 >
-                  Get more
+                  Contact us
                 </button>
               </div>
             )}
