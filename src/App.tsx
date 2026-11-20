@@ -458,6 +458,11 @@ export default function App() {
                   {SUPPORT_EMAIL}
                 </a>
               </p>
+              <p className="text-sm text-slate-500">
+                <a href="/privacy" target="_blank" className="font-semibold text-slate-600 hover:text-brand-700">Privacy Policy</a>
+                <span className="mx-2" aria-hidden="true">·</span>
+                <a href="/terms" target="_blank" className="font-semibold text-slate-600 hover:text-brand-700">Terms of Use</a>
+              </p>
             </div>
           </div>
         )}

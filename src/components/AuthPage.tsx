@@ -312,6 +312,15 @@ export default function AuthPage() {
                     )}
                   </button>
 
+                  {mode === 'signup' && (
+                    <p className="text-sm text-slate-500 text-center leading-relaxed">
+                      By creating an account, you agree to the{' '}
+                      <a href="/terms" target="_blank" className="font-semibold text-brand-600 hover:text-brand-700">Terms of Use</a>{' '}
+                      and{' '}
+                      <a href="/privacy" target="_blank" className="font-semibold text-brand-600 hover:text-brand-700">Privacy Policy</a>.
+                    </p>
+                  )}
+
                   {mode === 'forgot' && (
                     <button type="button" onClick={() => switchMode('login')} className="btn-secondary w-full">
                       <ArrowLeft size={16} />
@@ -355,6 +364,11 @@ export default function AuthPage() {
 
           <p className="text-center text-sm text-slate-500 mt-6 leading-relaxed">
             All AI-generated notes must be reviewed by the care worker before being added to official care records.
+          </p>
+          <p className="text-center text-sm text-slate-500 mt-3">
+            <a href="/privacy" className="font-semibold text-slate-600 hover:text-brand-700">Privacy Policy</a>
+            <span className="mx-2" aria-hidden="true">·</span>
+            <a href="/terms" className="font-semibold text-slate-600 hover:text-brand-700">Terms of Use</a>
           </p>
         </div>
       </main>
