@@ -19,12 +19,12 @@ export default function ClearConfirmModal({ isOpen, onConfirm, onCancel }: Clear
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Clear this note?</h2>
-            <p className="text-sm text-slate-600">What you wrote and the finished note will be removed.</p>
+            <p className="text-sm text-slate-600">Your observations and the generated note will be removed.</p>
           </div>
         </div>
 
         <p className="text-[15px] text-slate-600 mb-5">
-          Your name will be kept. Saved notes in History are not affected.
+          Your name will be retained. Saved notes are not affected.
         </p>
 
         <div className="flex gap-3">
@@ -38,7 +38,7 @@ export default function ClearConfirmModal({ isOpen, onConfirm, onCancel }: Clear
             onClick={onConfirm}
             className="flex-1 px-4 py-3 bg-red-600 rounded-xl text-[15px] font-semibold text-white hover:bg-red-700 transition-colors"
           >
-            Yes, clear it
+            Clear note
           </button>
         </div>
       </div>

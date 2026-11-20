@@ -85,7 +85,7 @@ export default function NoteResult({
 <body>
   <div class="header">
     <h1>${esc(noteType ?? 'Care Report')}</h1>
-    <p>Care record &bull; Written with myCareNotes &bull; Reviewed and approved by the care worker</p>
+    <p>Care record &bull; Generated with myCareNotes &bull; Reviewed and approved by the care worker</p>
   </div>
   <div class="note-body">${esc(note)}</div>
   <div class="footer">
@@ -106,7 +106,7 @@ export default function NoteResult({
             <AlertCircle size={15} className="text-red-500" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-red-800 mb-1">We couldn't write that note</h3>
+            <h3 className="text-base font-bold text-red-800 mb-1">The note could not be generated</h3>
             <p className="text-[15px] text-red-700">{error}</p>
           </div>
         </div>
@@ -126,9 +126,9 @@ export default function NoteResult({
             <FileText size={14} className={approved ? 'text-emerald-600' : 'text-amber-600'} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Your note</h3>
+            <h3 className="text-base font-bold text-slate-900">Generated note</h3>
             <p className="text-sm text-slate-500">
-              {approved ? 'Approved and ready to copy' : 'Check it before you use it'}
+              {approved ? 'Approved and ready to use' : 'Review required before use'}
             </p>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function NoteResult({
           </span>
         ) : (
           <span className="flex-shrink-0 whitespace-nowrap text-xs bg-amber-50 text-amber-800 font-semibold px-2.5 py-1 rounded-full border border-amber-200">
-            Not yet approved
+            Awaiting review
           </span>
         )}
       </div>
@@ -150,8 +150,8 @@ export default function NoteResult({
           <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
             <AlertCircle size={15} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-900 leading-relaxed">
-              <span className="font-semibold">Please read it through.</span>{' '}
-              Edit anything that doesn't match what actually happened, then approve it.
+              <span className="font-semibold">Please review this note carefully.</span>{' '}
+              Amend anything that does not accurately reflect your observations before approving it.
             </p>
           </div>
         </div>
@@ -190,7 +190,7 @@ export default function NoteResult({
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-[15px] transition-all"
             >
               <ShieldCheck size={14} />
-              Save changes & approve
+              Save and approve
             </button>
           </>
         ) : approved ? (
@@ -212,7 +212,7 @@ export default function NoteResult({
                     : 'border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300'
                 } disabled:opacity-60 disabled:cursor-not-allowed`}
               >
-                {isSaved ? <><Check size={14} /> Saved</> : <><Save size={14} /> {isSaving ? 'Saving...' : 'Save'}</>}
+                {isSaved ? <><Check size={14} /> Saved</> : <><Save size={14} /> {isSaving ? 'Saving' : 'Save'}</>}
               </button>
             )}
             <button
@@ -247,7 +247,7 @@ export default function NoteResult({
               className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-[15px] transition-all"
             >
               <ShieldCheck size={14} />
-              Looks right — approve
+              Approve note
             </button>
           </>
         )}

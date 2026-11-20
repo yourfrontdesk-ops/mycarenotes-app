@@ -159,14 +159,14 @@ export default function App() {
         setShowPricing(true);
         setError('');
       } else if (!response.ok || data.error) {
-        setError(data.message || data.error || 'Failed to generate note. Please try again.');
+        setError(data.message || data.error || 'The note could not be generated. Please try again.');
       } else {
         setGeneratedNote(data.note);
         fetchEntitlement();
         setTimeout(() => document.getElementById('note-result')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
       }
     } catch {
-      setError('Network error. Please check your connection and try again.');
+      setError('Unable to connect. Please check your internet connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -342,14 +342,14 @@ export default function App() {
               isOpen={true}
             />
             {notesLoading && (
-              <p className="text-sm text-center text-slate-500">Loading notes…</p>
+              <p className="text-sm text-center text-slate-500">Loading notes</p>
             )}
           </div>
         ) : (
           <div className="space-y-4">
             {outOfCredits && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3">
-                <p className="text-[15px] text-amber-900 font-medium">You've used the {FREE_NOTES} notes included in the free plan. Contact us to continue.</p>
+                <p className="text-[15px] text-amber-900 font-medium">You have used the {FREE_NOTES} notes included in the free plan. Please contact us to continue.</p>
                 <button
                   onClick={() => setShowPricing(true)}
                   className="flex-shrink-0 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-xl transition-colors"
@@ -362,9 +362,9 @@ export default function App() {
             {!generatedNote && !error && notes.length === 0 && (
               <div className="px-1">
                 <h1 className="text-2xl font-bold tracking-tight">
-                  Hi{user.user_metadata?.full_name ? ` ${String(user.user_metadata.full_name).split(' ')[0]}` : ''} 👋
+                  Welcome{user.user_metadata?.full_name ? `, ${String(user.user_metadata.full_name).split(' ')[0]}` : ''}
                 </h1>
-                <p className="mt-1 text-slate-600">Add your observations from the shift and we'll draft the note for you to review.</p>
+                <p className="mt-1 text-slate-600">Enter your observations below to generate a professional care note for review.</p>
               </div>
             )}
 
@@ -406,16 +406,16 @@ export default function App() {
             {generatedNote && (
               <button onClick={handleNewNote} className="btn-secondary w-full">
                 <Plus size={17} />
-                Start a new note
+                New note
               </button>
             )}
 
             <div className="text-center pt-2 pb-4 space-y-1.5">
               <p className="text-sm text-slate-500">
-                Always review AI-written notes before adding them to official care records.
+                All AI-generated notes must be reviewed by the care worker before being added to official care records.
               </p>
               <p className="text-sm text-slate-500">
-                Need help?{' '}
+                Support:{' '}
                 <a href={`mailto:${SUPPORT_EMAIL}`} className="text-brand-600 hover:text-brand-700 font-semibold">
                   {SUPPORT_EMAIL}
                 </a>

@@ -7,13 +7,12 @@ import Logo from './Logo';
 type Mode = 'signup' | 'login' | 'forgot';
 
 // Wording kept from the original page. Three lines were softened so they can be backed up:
-// no unverified testimonial, no specific time-saving figure, and "with CQC standards in mind"
-// rather than "CQC-ready" (CQC does not certify products).
+// no unverified testimonial and no specific time-saving figure.
 const benefits = [
-  'Turn bullet points into full, professional care notes in seconds',
-  'Spend less time on documentation every shift',
-  'Secure, private, and only accessible by you',
-  `${FREE_NOTES} free notes included — no card required`,
+  'Turn brief bullet points into complete, professional care notes in seconds',
+  'Reduce the time spent on documentation every shift',
+  'Secure and private: your notes are accessible only to you',
+  `${FREE_NOTES} free notes included. No payment details required`,
 ];
 
 const noteTypes = [
@@ -25,11 +24,11 @@ const noteTypes = [
 
 function friendlyError(message: string): string {
   const m = message.toLowerCase();
-  if (m.includes('invalid login credentials')) return "That email and password don't match. Try again, or reset your password.";
-  if (m.includes('email not confirmed')) return 'Please confirm your email first. Check your inbox for the link we sent you.';
-  if (m.includes('already registered')) return 'There is already an account with this email. Try signing in instead.';
-  if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Please wait a few minutes and try again.';
-  if (m.includes('failed to fetch') || m.includes('network')) return 'We could not connect. Please check your internet connection.';
+  if (m.includes('invalid login credentials')) return 'The email address or password is incorrect. Please try again or reset your password.';
+  if (m.includes('email not confirmed')) return 'Please confirm your email address using the link sent to your inbox.';
+  if (m.includes('already registered')) return 'An account with this email address already exists. Please sign in.';
+  if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Please wait a few minutes before trying again.';
+  if (m.includes('failed to fetch') || m.includes('network')) return 'Unable to connect. Please check your internet connection and try again.';
   return message;
 }
 
@@ -99,8 +98,8 @@ export default function AuthPage() {
               <span className="text-brand-100">written in seconds.</span>
             </h1>
             <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed text-pretty">
-              Transform your quick bullet points into detailed, professional care notes, written with
-              CQC standards in mind, so you can focus on what matters most.
+              Transform brief bullet points into detailed, professional care notes written to CQC
+              standards, so you can focus on what matters most: the people you support.
             </p>
 
             <ul className="mt-7 space-y-3">
@@ -136,7 +135,7 @@ export default function AuthPage() {
             <Building2 size={20} className="text-brand-100 flex-shrink-0" />
             <span className="text-sm leading-relaxed">
               <span className="font-semibold">Run a care service?</span>{' '}
-              <span className="text-brand-50/85">Ask us about team access.</span>
+              <span className="text-brand-50/85">Contact us about organisation accounts.</span>
             </span>
             <ArrowRight size={16} className="ml-auto flex-shrink-0" />
           </a>
@@ -155,10 +154,10 @@ export default function AuthPage() {
               <h2 className="text-2xl font-bold tracking-tight">Check your email</h2>
               <p className="mt-3 text-slate-600 leading-relaxed">
                 {sentTo.kind === 'confirm'
-                  ? <>We've sent a link to <strong className="text-slate-900">{sentTo.email}</strong>. Click it to confirm your account and you'll be signed straight in.</>
-                  : <>If there's an account for <strong className="text-slate-900">{sentTo.email}</strong>, we've sent a link to set a new password.</>}
+                  ? <>A confirmation link has been sent to <strong className="text-slate-900">{sentTo.email}</strong>. Please select the link to activate your account. You will then be signed in automatically.</>
+                  : <>If an account exists for <strong className="text-slate-900">{sentTo.email}</strong>, a link to reset your password has been sent.</>}
               </p>
-              <p className="mt-3 text-sm text-slate-500">Can't see it? Check your junk or spam folder.</p>
+              <p className="mt-3 text-sm text-slate-500">If the email does not arrive within a few minutes, please check your junk or spam folder.</p>
               <button onClick={() => switchMode('login')} className="btn-secondary w-full mt-7">
                 <ArrowLeft size={16} />
                 Back to sign in
@@ -172,9 +171,9 @@ export default function AuthPage() {
                 </h2>
                 <p className="mt-1.5 text-slate-600">
                   {mode === 'login'
-                    ? 'Sign in to write and find your care notes.'
+                    ? 'Sign in to access your care notes.'
                     : mode === 'forgot'
-                    ? "Enter your email and we'll send you a link to set a new password."
+                    ? 'Enter your email address and we will send you a link to reset your password.'
                     : 'Create your account and generate your first note in seconds.'}
                 </p>
               </div>
@@ -202,7 +201,7 @@ export default function AuthPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   {mode === 'signup' && (
                     <div>
-                      <label htmlFor="name" className="field-label">Your name</label>
+                      <label htmlFor="name" className="field-label">Full name</label>
                       <div className="relative">
                         <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
@@ -211,7 +210,7 @@ export default function AuthPage() {
                           autoComplete="name"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          placeholder="e.g. Sarah Ahmed"
+                          placeholder="Full name"
                           required
                           className="field-input pl-11"
                         />
@@ -229,7 +228,7 @@ export default function AuthPage() {
                         autoComplete="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@example.co.uk"
+                        placeholder="name@organisation.co.uk"
                         required
                         className="field-input pl-11"
                       />
@@ -285,11 +284,11 @@ export default function AuthPage() {
                     {loading ? (
                       <>
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Please wait…
+                        Please wait
                       </>
                     ) : (
                       <>
-                        {mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : 'Create free account'}
+                        {mode === 'login' ? 'Sign in' : mode === 'forgot' ? 'Send reset link' : 'Create account'}
                         <ArrowRight size={17} />
                       </>
                     )}
@@ -318,12 +317,12 @@ export default function AuthPage() {
           >
             <Building2 size={20} className="text-brand-600 flex-shrink-0" />
             <span className="text-sm text-slate-700">
-              <span className="font-semibold text-slate-900">Run a care service?</span> Get in touch about team access.
+              <span className="font-semibold text-slate-900">Run a care service?</span> Contact us about organisation accounts.
             </span>
           </a>
 
           <p className="text-center text-sm text-slate-500 mt-6 leading-relaxed">
-            Always review AI-written notes before adding them to official care records.
+            All AI-generated notes must be reviewed by the care worker before being added to official care records.
           </p>
         </div>
       </main>

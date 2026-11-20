@@ -102,8 +102,8 @@ export default function NoteHistory({ notes, onSelect, onDelete, isOpen }: NoteH
           <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
             <FileText size={20} className="text-slate-400" />
           </div>
-          <p className="text-base font-semibold text-slate-700">No saved notes yet</p>
-          <p className="text-sm text-slate-500 mt-1">After you approve a note, tap <strong>Save</strong> and it will appear here.</p>
+          <p className="text-base font-semibold text-slate-700">No saved notes</p>
+          <p className="text-sm text-slate-500 mt-1">Approved notes appear here once saved.</p>
         </div>
       ) : filtered.length === 0 ? (
         <p className="px-6 py-12 text-center text-slate-500">No notes match your search.</p>
@@ -121,7 +121,7 @@ export default function NoteHistory({ notes, onSelect, onDelete, isOpen }: NoteH
                       {note.note_type}
                     </span>
                     <p className="mt-1.5 text-base font-semibold text-slate-900 truncate">
-                      {note.resident_name || 'No name given'}
+                      {note.resident_name || 'Name not recorded'}
                     </p>
                     <div className="flex items-center gap-x-3 gap-y-0.5 mt-0.5 flex-wrap text-sm text-slate-500">
                       <span className="flex items-center gap-1">

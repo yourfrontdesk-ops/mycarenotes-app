@@ -56,7 +56,7 @@ export default function ResetPassword({ onDone }: { onDone: () => void }) {
           </div>
           {error && <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">{error}</div>}
           <button type="submit" disabled={loading} className="btn-primary w-full py-3.5">
-            {loading ? 'Saving…' : 'Save new password'}
+            {loading ? 'Saving' : 'Save new password'}
           </button>
         </form>
       </div>

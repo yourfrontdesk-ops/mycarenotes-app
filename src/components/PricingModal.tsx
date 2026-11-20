@@ -84,8 +84,8 @@ export default function PricingModal({ onClose }: Props) {
               <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full px-2.5 py-1 mb-3">
                 <Clock size={12} /> Coming soon
               </span>
-              <h2 id="plans-title" className="text-xl font-bold tracking-tight">Paid plans are on the way</h2>
-              <p className="text-slate-600 mt-1">We're putting the finishing touches to payments. Here's what's planned:</p>
+              <h2 id="plans-title" className="text-xl font-bold tracking-tight">Paid plans coming soon</h2>
+              <p className="text-slate-600 mt-1">Paid plans will be available shortly. Planned pricing:</p>
             </div>
             <button onClick={onClose} aria-label="Close" className="w-10 h-10 -mr-2 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100">
               <X size={18} />
@@ -105,10 +105,10 @@ export default function PricingModal({ onClose }: Props) {
 
           <div className="p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] space-y-3">
             <a href={`mailto:${SUPPORT_EMAIL}?subject=More%20myCareNotes%20credits`} className="btn-primary w-full">
-              <Mail size={17} /> Need more notes now? Email us
+              <Mail size={17} /> Request additional notes
             </a>
             <a href={`mailto:${SUPPORT_EMAIL}?subject=myCareNotes%20for%20our%20care%20service`} className="btn-secondary w-full">
-              <Building2 size={17} /> Care provider? Ask about team access
+              <Building2 size={17} /> Enquire about organisation accounts
             </a>
           </div>
         </div>

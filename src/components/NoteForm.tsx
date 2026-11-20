@@ -50,19 +50,19 @@ const SHIFT_PRESETS = [
 // Full class names written out so Tailwind keeps them in the build
 const TYPE_META: Record<NoteType, { icon: LucideIcon; hint: string; tile: string; idle: string; active: string; tick: string }> = {
   'Daily Log': {
-    icon: ClipboardList, hint: 'Care and wellbeing', tile: 'bg-brand-500', tick: 'text-brand-600',
+    icon: ClipboardList, hint: 'Routine care and wellbeing', tile: 'bg-brand-500', tick: 'text-brand-600',
     idle: 'bg-brand-50/60 border-brand-100 hover:border-brand-300', active: 'bg-brand-50 border-brand-500 ring-4 ring-brand-500/15',
   },
   'Incident Report': {
-    icon: AlertTriangle, hint: 'Falls, accidents, events', tile: 'bg-amber-500', tick: 'text-amber-600',
+    icon: AlertTriangle, hint: 'Falls, accidents and events', tile: 'bg-amber-500', tick: 'text-amber-600',
     idle: 'bg-amber-50/60 border-amber-100 hover:border-amber-300', active: 'bg-amber-50 border-amber-500 ring-4 ring-amber-500/15',
   },
   'Handover Note': {
-    icon: ArrowLeftRight, hint: 'For the next shift', tile: 'bg-emerald-500', tick: 'text-emerald-600',
+    icon: ArrowLeftRight, hint: 'Shift-end summary', tile: 'bg-emerald-500', tick: 'text-emerald-600',
     idle: 'bg-emerald-50/60 border-emerald-100 hover:border-emerald-300', active: 'bg-emerald-50 border-emerald-500 ring-4 ring-emerald-500/15',
   },
   'Medication Note': {
-    icon: Pill, hint: 'Given, refused, PRN', tile: 'bg-rose-500', tick: 'text-rose-600',
+    icon: Pill, hint: 'Administration and refusals', tile: 'bg-rose-500', tick: 'text-rose-600',
     idle: 'bg-rose-50/60 border-rose-100 hover:border-rose-300', active: 'bg-rose-50 border-rose-500 ring-4 ring-rose-500/15',
   },
 };
@@ -99,7 +99,7 @@ export default function NoteForm({
 
         {/* Note type */}
         <fieldset>
-          <legend className="field-label">What kind of note?</legend>
+          <legend className="field-label">Note type</legend>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {NOTE_TYPES.map((type) => {
               const { icon: Icon, hint, tile, idle, active: activeCls, tick } = TYPE_META[type];
@@ -129,26 +129,26 @@ export default function NoteForm({
         {/* Names */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="worker" className="field-label">Your name</label>
+            <label htmlFor="worker" className="field-label">Care worker</label>
             <input
               id="worker"
               type="text"
               autoComplete="name"
               value={metadata.careWorkerName}
               onChange={(e) => onMetadataChange('careWorkerName', e.target.value)}
-              placeholder="Care worker name"
+              placeholder="Full name"
               className="field-input"
             />
           </div>
           <div>
-            <label htmlFor="resident" className="field-label">Person you supported</label>
+            <label htmlFor="resident" className="field-label">Resident / service user</label>
             <input
               id="resident"
               type="text"
               autoComplete="off"
               value={metadata.residentName}
               onChange={(e) => onMetadataChange('residentName', e.target.value)}
-              placeholder="Resident / service user name"
+              placeholder="Full name"
               className="field-input"
             />
           </div>
@@ -167,7 +167,7 @@ export default function NoteForm({
             />
           </div>
           <div>
-            <span className="field-label" id="shift-label">Shift or visit</span>
+            <span className="field-label" id="shift-label">Shift / visit time</span>
             <div className="grid grid-cols-4 gap-1.5 mb-2" role="group" aria-labelledby="shift-label">
               {SHIFT_PRESETS.map((preset) => (
                 <button
@@ -190,7 +190,7 @@ export default function NoteForm({
               aria-labelledby="shift-label"
               value={metadata.shiftTime}
               onChange={(e) => onMetadataChange('shiftTime', e.target.value)}
-              placeholder="or type a visit time, e.g. 10:00–10:45"
+              placeholder="Or enter a custom time, e.g. 10:00–10:45"
               className="field-input"
             />
           </div>
@@ -199,12 +199,12 @@ export default function NoteForm({
         {/* Bullet points */}
         <div>
           <div className="flex items-baseline justify-between">
-            <label htmlFor="notes" className="field-label">What happened?</label>
+            <label htmlFor="notes" className="field-label">Observations</label>
             <span className={`text-sm tabular-nums ${wordCount > 0 && wordCount < 5 ? 'text-amber-700' : 'text-slate-500'}`}>
               {wordCount} {wordCount === 1 ? 'word' : 'words'}
             </span>
           </div>
-          <p className="text-sm text-slate-500 mb-2">Quick bullet points are fine. Only what you write goes in the note.</p>
+          <p className="text-sm text-slate-500 mb-2">Enter brief bullet points or keywords. Only the information you provide will be included in the note.</p>
           <textarea
             id="notes"
             value={bulletPoints}
@@ -225,12 +225,12 @@ export default function NoteForm({
             {isLoading ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Writing your note…
+                Generating note
               </>
             ) : (
               <>
                 <Sparkles size={17} />
-                Write my note
+                Generate note
               </>
             )}
           </button>
