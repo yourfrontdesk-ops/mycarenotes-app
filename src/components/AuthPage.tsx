@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { EnvelopeSimpleIcon as Mail, LockIcon as Lock, UserIcon as User, EyeIcon as Eye, EyeSlashIcon as EyeOff, ArrowRightIcon as ArrowRight, ArrowLeftIcon as ArrowLeft, EnvelopeSimpleOpenIcon as MailCheck, CheckCircleIcon as CheckCircle2, ClipboardTextIcon as ClipboardList, WarningIcon as AlertTriangle, ArrowsLeftRightIcon as ArrowLeftRight, PillIcon as Pill, BuildingsIcon as Building2 } from '@phosphor-icons/react';
 import { supabase } from '../lib/supabase';
-import { FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
+import { DEMO_EMAIL, DEMO_ENABLED, DEMO_PASSWORD, FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 import Logo from './Logo';
 
 type Mode = 'signup' | 'login' | 'forgot';
@@ -40,6 +40,15 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  const handleDemo = async () => {
+    setError('');
+    setDemoLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
+    if (error) setError('The demo is currently unavailable. Please try again later or create an account.');
+    setDemoLoading(false);
+  };
   const [sentTo, setSentTo] = useState<{ kind: 'confirm' | 'reset'; email: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -302,6 +311,20 @@ export default function AuthPage() {
                   )}
                 </form>
               </div>
+
+              {DEMO_ENABLED && mode !== 'forgot' && (
+                <div className="mt-5">
+                  <div className="flex items-center gap-3 text-sm text-slate-500">
+                    <span className="h-px flex-1 bg-slate-200" />
+                    or
+                    <span className="h-px flex-1 bg-slate-200" />
+                  </div>
+                  <button type="button" onClick={handleDemo} disabled={demoLoading} className="btn-secondary w-full mt-5 py-3.5">
+                    {demoLoading ? 'Opening demo' : 'Try the demo'}
+                    {!demoLoading && <span className="font-normal text-slate-500">(no sign-up required)</span>}
+                  </button>
+                </div>
+              )}
 
               {mode === 'signup' && PAYMENTS_ENABLED && (
                 <p className="mt-4 text-sm text-slate-600 text-center">

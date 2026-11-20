@@ -11,7 +11,7 @@ import NoteHistory from './components/NoteHistory';
 import PricingModal from './components/PricingModal';
 import ResetPassword from './components/ResetPassword';
 import Logo from './components/Logo';
-import { FREE_NOTES, SUPPORT_EMAIL } from './lib/config';
+import { DEMO_EMAIL, FREE_NOTES, SUPPORT_EMAIL } from './lib/config';
 
 const CARE_WORKER_NAME_KEY = 'carenote_care_worker_name';
 
@@ -135,6 +135,8 @@ export default function App() {
     }
   };
 
+  const isDemo = !!DEMO_EMAIL && session?.user.email === DEMO_EMAIL;
+
   const handleGenerate = async () => {
     if (!bulletPoints.trim()) return;
     setIsLoading(true);
@@ -155,7 +157,9 @@ export default function App() {
 
       const data = await response.json();
 
-      if (response.status === 402 || data.error === 'NO_CREDITS') {
+      if ((response.status === 402 || data.error === 'NO_CREDITS') && isDemo) {
+        setError('The demo allowance has been used. Please create your own account to continue.');
+      } else if (response.status === 402 || data.error === 'NO_CREDITS') {
         setShowPricing(true);
         setError('');
       } else if (!response.ok || data.error) {
@@ -271,7 +275,13 @@ export default function App() {
           <Logo size="sm" />
 
           <div className="flex items-center gap-1 sm:gap-1.5">
-            {entitlement && (
+            {isDemo && (
+              <span className="flex items-center h-10 px-3 text-sm font-semibold rounded-xl border border-amber-200 bg-amber-50 text-amber-800">
+                Demo
+              </span>
+            )}
+
+            {entitlement && !isDemo && (
               <button
                 onClick={() => setShowPricing(true)}
                 title={unlimited ? 'Unlimited notes' : `Free plan: ${entitlement.credits} of ${FREE_NOTES} notes remaining`}
@@ -295,7 +305,7 @@ export default function App() {
               </button>
             )}
 
-            <button
+            {!isDemo && <button
               onClick={() => setShowHistory(!showHistory)}
               aria-label={showHistory ? 'Close history' : 'History'}
               className={`flex items-center gap-1.5 h-10 px-3 text-sm font-semibold rounded-xl transition-colors ${
@@ -309,7 +319,7 @@ export default function App() {
                   {notes.length}
                 </span>
               )}
-            </button>
+            </button>}
 
             <div className="hidden sm:flex items-center pl-2 ml-1 border-l border-slate-200 h-8">
               <div
@@ -347,7 +357,22 @@ export default function App() {
           </div>
         ) : (
           <div className="space-y-4">
-            {outOfCredits && (
+            {isDemo && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="text-[15px] text-amber-900 leading-relaxed">
+                  <span className="font-semibold">You are using the shared demo account.</span>{' '}
+                  Please do not enter real names or personal information. Notes cannot be saved in the demo.
+                </p>
+                <button
+                  onClick={handleSignOut}
+                  className="flex-shrink-0 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-xl transition-colors"
+                >
+                  Create your own account
+                </button>
+              </div>
+            )}
+
+            {outOfCredits && !isDemo && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3">
                 <p className="text-[15px] text-amber-900 font-medium">You have used the {FREE_NOTES} notes included in the free plan. Please contact us to continue.</p>
                 <button
@@ -359,7 +384,7 @@ export default function App() {
               </div>
             )}
 
-            {!generatedNote && !error && notes.length === 0 && (
+            {!generatedNote && !error && notes.length === 0 && !isDemo && (
               <div className="px-1">
                 <h1 className="text-2xl font-bold tracking-tight">
                   Welcome{user.user_metadata?.full_name ? `, ${String(user.user_metadata.full_name).split(' ')[0]}` : ''}
@@ -392,7 +417,7 @@ export default function App() {
                 error={error}
                 noteType={noteType}
                 metadata={metadata}
-                onSave={handleSave}
+                onSave={isDemo ? undefined : handleSave}
                 isSaving={isSaving}
                 isSaved={isSaved}
                 onNoteChange={(edited) => {
