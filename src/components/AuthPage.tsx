@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { EnvelopeSimpleIcon as Mail, LockIcon as Lock, UserIcon as User, EyeIcon as Eye, EyeSlashIcon as EyeOff, ArrowRightIcon as ArrowRight, ArrowLeftIcon as ArrowLeft, EnvelopeSimpleOpenIcon as MailCheck, CheckCircleIcon as CheckCircle2, ClipboardTextIcon as ClipboardList, WarningIcon as AlertTriangle, ArrowsLeftRightIcon as ArrowLeftRight, PillIcon as Pill, BuildingsIcon as Building2 } from '@phosphor-icons/react';
 import { supabase } from '../lib/supabase';
-import { DEMO_EMAIL, DEMO_ENABLED, DEMO_PASSWORD, FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
+import { clearActivity, consumeTimedOut } from '../lib/idleTimeout';
+import { IDLE_TIMEOUT_MINUTES, DEMO_EMAIL, DEMO_ENABLED, DEMO_PASSWORD, FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 import Logo from './Logo';
 
 type Mode = 'signup' | 'login' | 'forgot';
@@ -33,7 +34,8 @@ function friendlyError(message: string): string {
 }
 
 export default function AuthPage() {
-  const [mode, setMode] = useState<Mode>('signup');
+  const [timedOut] = useState(consumeTimedOut);
+  const [mode, setMode] = useState<Mode>(timedOut ? 'login' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -49,6 +51,8 @@ export default function AuthPage() {
     if (error) setError('The demo is currently unavailable. Please try again later or create an account.');
     setDemoLoading(false);
   };
+  // The sign-in page only shows when signed out, so any old activity record is no longer relevant
+  useEffect(() => { clearActivity(); }, []);
   const [sentTo, setSentTo] = useState<{ kind: 'confirm' | 'reset'; email: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,6 +178,11 @@ export default function AuthPage() {
             </div>
           ) : (
             <>
+              {timedOut && (
+                <div role="status" className="mb-6 bg-brand-50 border border-brand-200 text-brand-900 text-sm px-4 py-3 rounded-xl leading-relaxed">
+                  You were signed out after {IDLE_TIMEOUT_MINUTES} minutes of inactivity. Please sign in again.
+                </div>
+              )}
               <div className="mb-6">
                 <h2 className="text-2xl sm:text-[1.75rem] font-bold tracking-tight">
                   {mode === 'login' ? 'Welcome back' : mode === 'forgot' ? 'Reset your password' : 'Get started for free'}

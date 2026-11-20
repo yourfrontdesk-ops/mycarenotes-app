@@ -11,7 +11,8 @@ import NoteHistory from './components/NoteHistory';
 import PricingModal from './components/PricingModal';
 import ResetPassword from './components/ResetPassword';
 import Logo from './components/Logo';
-import { DEMO_EMAIL, FREE_NOTES, SUPPORT_EMAIL } from './lib/config';
+import { DEMO_EMAIL, FREE_NOTES, IDLE_TIMEOUT_MINUTES, SUPPORT_EMAIL } from './lib/config';
+import { clearActivity, markTimedOut, useIdleTimeout } from './lib/idleTimeout';
 
 const CARE_WORKER_NAME_KEY = 'carenote_care_worker_name';
 
@@ -54,6 +55,17 @@ export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [notesLoading, setNotesLoading] = useState(false);
   const [entitlement, setEntitlement] = useState<UserEntitlement | null>(null);
+
+  // Automatic sign-out after a period of inactivity
+  const { secondsLeft, staySignedIn } = useIdleTimeout(
+    !!session && !authLoading,
+    IDLE_TIMEOUT_MINUTES * 60_000,
+    60_000,
+    () => {
+      markTimedOut();
+      handleSignOut();
+    },
+  );
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -221,6 +233,7 @@ export default function App() {
   };
 
   const handleSignOut = async () => {
+    clearActivity();
     await supabase.auth.signOut();
     setNotes([]);
     setGeneratedNote('');
@@ -457,6 +470,25 @@ export default function App() {
       />
 
       {showPricing && <PricingModal onClose={() => setShowPricing(false)} />}
+
+      {secondsLeft !== null && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" />
+          <div role="alertdialog" aria-modal="true" aria-labelledby="idle-title" aria-describedby="idle-desc"
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h2 id="idle-title" className="text-lg font-bold text-slate-900">Are you still there?</h2>
+            <p id="idle-desc" className="mt-2 text-[15px] text-slate-600 leading-relaxed">
+              For security, you will be signed out in{' '}
+              <strong className="text-slate-900 tabular-nums">{secondsLeft} second{secondsLeft === 1 ? '' : 's'}</strong>{' '}
+              due to inactivity. Any unsaved work will be lost.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button onClick={handleSignOut} className="btn-secondary flex-1">Sign out</button>
+              <button onClick={staySignedIn} className="btn-primary flex-1" autoFocus>Stay signed in</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

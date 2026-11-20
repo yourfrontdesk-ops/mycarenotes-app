@@ -9,4 +9,7 @@ export const DEMO_EMAIL = (import.meta.env.VITE_DEMO_EMAIL as string | undefined
 export const DEMO_PASSWORD = (import.meta.env.VITE_DEMO_PASSWORD as string | undefined) ?? '';
 export const DEMO_ENABLED = Boolean(DEMO_EMAIL && DEMO_PASSWORD);
 
+// Automatic sign-out after this many minutes without activity (warning shown 1 minute before)
+export const IDLE_TIMEOUT_MINUTES = 15;
+
 export const SUPPORT_EMAIL = 'hello@mycarenotes.co.uk';
