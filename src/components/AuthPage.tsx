@@ -4,15 +4,15 @@ import {
   PenLine, Sparkles, ShieldCheck, ClipboardList, AlertTriangle, ArrowLeftRight, Pill, Building2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
+import { FREE_ACCESS, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 import Logo from './Logo';
 
 type Mode = 'signup' | 'login' | 'forgot';
 
 const steps = [
-  { icon: PenLine, title: 'Jot it down', desc: 'Type quick bullet points or keywords, in your own words.' },
-  { icon: Sparkles, title: 'Get a full note', desc: 'myCareNotes turns them into clear, professional prose.' },
-  { icon: ShieldCheck, title: 'Check and approve', desc: 'You review every note before it goes on a record.' },
+  { icon: PenLine, title: 'Add your observations', desc: 'Short bullet points or keywords, in your own words.' },
+  { icon: Sparkles, title: 'Receive a draft', desc: 'A structured note in clear, professional language.' },
+  { icon: ShieldCheck, title: 'Review and approve', desc: 'Nothing is final until you have checked it.' },
 ];
 
 const noteTypes = [
@@ -89,13 +89,19 @@ export default function AuthPage() {
           <Logo tone="light" />
 
           <div className="mt-8 lg:mt-auto lg:mb-auto max-w-lg">
+            {FREE_ACCESS && (
+              <span className="inline-flex items-center gap-2 text-sm font-semibold bg-white/15 border border-white/20 rounded-full px-3.5 py-1.5 mb-5">
+                <span className="w-2 h-2 rounded-full bg-emerald-300" />
+                Free to use for a limited time
+              </span>
+            )}
             <h1 className="text-[1.75rem] leading-tight sm:text-4xl font-extrabold tracking-tight">
-              Rough shift notes in.<br />
-              <span className="text-brand-100">Clear care records out.</span>
+              Professional care notes,<br />
+              <span className="text-brand-100">written with you.</span>
             </h1>
             <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed">
-              Write a few quick points about your shift. myCareNotes turns them into a professional,
-              person-centred note in UK English, ready for you to check and add to the care record.
+              Add your observations from the shift and myCareNotes drafts a clear, person-centred
+              record in UK English. You review it, make any changes and approve it before it is used.
             </p>
 
             {/* How it works — hidden on small phones to keep the form close to the top */}
@@ -171,6 +177,8 @@ export default function AuthPage() {
                     ? 'Sign in to write and find your care notes.'
                     : mode === 'forgot'
                     ? "Enter your email and we'll send you a link to set a new password."
+                    : FREE_ACCESS
+                    ? 'Free for a limited time. No card needed.'
                     : 'Your first 2 notes are free. No card needed.'}
                 </p>
               </div>
@@ -300,7 +308,7 @@ export default function AuthPage() {
                 </form>
               </div>
 
-              {mode === 'signup' && (
+              {mode === 'signup' && !FREE_ACCESS && (
                 <p className="mt-4 text-sm text-slate-600 text-center">
                   2 free notes included.{' '}
                   {PAYMENTS_ENABLED ? 'Paid plans from £1.99.' : 'Paid plans coming soon.'}

@@ -11,7 +11,7 @@ import NoteHistory from './components/NoteHistory';
 import PricingModal from './components/PricingModal';
 import ResetPassword from './components/ResetPassword';
 import Logo from './components/Logo';
-import { SUPPORT_EMAIL } from './lib/config';
+import { FREE_ACCESS, SUPPORT_EMAIL } from './lib/config';
 
 const CARE_WORKER_NAME_KEY = 'carenote_care_worker_name';
 
@@ -260,7 +260,7 @@ export default function App() {
     .toUpperCase();
 
   const unlimited = !!entitlement && (entitlement.isUnlimited || entitlement.hasActiveSub);
-  const outOfCredits = !!entitlement && !unlimited && entitlement.credits === 0;
+  const outOfCredits = !FREE_ACCESS && !!entitlement && !unlimited && entitlement.credits === 0;
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -271,7 +271,7 @@ export default function App() {
           <Logo size="sm" />
 
           <div className="flex items-center gap-1 sm:gap-1.5">
-            {entitlement && (
+            {entitlement && !FREE_ACCESS && (
               <button
                 onClick={() => setShowPricing(true)}
                 title={unlimited ? 'Unlimited notes' : 'Notes remaining'}
@@ -358,7 +358,7 @@ export default function App() {
                 <h1 className="text-2xl font-bold tracking-tight">
                   Hi{user.user_metadata?.full_name ? ` ${String(user.user_metadata.full_name).split(' ')[0]}` : ''} 👋
                 </h1>
-                <p className="mt-1 text-slate-600">Jot down what happened on your shift and we'll write it up properly.</p>
+                <p className="mt-1 text-slate-600">Add your observations from the shift and we'll draft the note for you to review.</p>
               </div>
             )}
 
