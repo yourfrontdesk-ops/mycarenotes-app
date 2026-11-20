@@ -11,7 +11,7 @@ import NoteHistory from './components/NoteHistory';
 import PricingModal from './components/PricingModal';
 import ResetPassword from './components/ResetPassword';
 import Logo from './components/Logo';
-import { FREE_ACCESS, SUPPORT_EMAIL } from './lib/config';
+import { FREE_NOTES, SUPPORT_EMAIL } from './lib/config';
 
 const CARE_WORKER_NAME_KEY = 'carenote_care_worker_name';
 
@@ -260,7 +260,7 @@ export default function App() {
     .toUpperCase();
 
   const unlimited = !!entitlement && (entitlement.isUnlimited || entitlement.hasActiveSub);
-  const outOfCredits = !FREE_ACCESS && !!entitlement && !unlimited && entitlement.credits === 0;
+  const outOfCredits = !!entitlement && !unlimited && entitlement.credits === 0;
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -271,7 +271,7 @@ export default function App() {
           <Logo size="sm" />
 
           <div className="flex items-center gap-1 sm:gap-1.5">
-            {entitlement && !FREE_ACCESS && (
+            {entitlement && (
               <button
                 onClick={() => setShowPricing(true)}
                 title={unlimited ? 'Unlimited notes' : 'Notes remaining'}
@@ -285,7 +285,7 @@ export default function App() {
               >
                 {unlimited ? <InfinityIcon size={16} /> : <Zap size={15} className={outOfCredits ? '' : 'text-amber-500'} />}
                 <span>{unlimited ? 'Unlimited' : `${entitlement.credits}`}</span>
-                {!unlimited && <span className="hidden sm:inline font-medium">{entitlement.credits === 1 ? 'note left' : 'notes left'}</span>}
+                {!unlimited && <span className="hidden sm:inline font-medium">{entitlement.credits === 1 ? 'free note left' : 'free notes left'}</span>}
               </button>
             )}
 
@@ -343,7 +343,7 @@ export default function App() {
           <div className="space-y-4">
             {outOfCredits && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3.5 flex items-center justify-between gap-3">
-                <p className="text-[15px] text-amber-900 font-medium">You've used your free notes.</p>
+                <p className="text-[15px] text-amber-900 font-medium">You've used your {FREE_NOTES} free notes. Get in touch if you'd like more.</p>
                 <button
                   onClick={() => setShowPricing(true)}
                   className="flex-shrink-0 text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-xl transition-colors"

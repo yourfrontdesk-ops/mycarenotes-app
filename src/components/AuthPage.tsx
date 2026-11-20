@@ -4,7 +4,7 @@ import {
   PenLine, Sparkles, ShieldCheck, ClipboardList, AlertTriangle, ArrowLeftRight, Pill, Building2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { FREE_ACCESS, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
+import { FREE_NOTES, PAYMENTS_ENABLED, SUPPORT_EMAIL } from '../lib/config';
 import Logo from './Logo';
 
 type Mode = 'signup' | 'login' | 'forgot';
@@ -89,10 +89,10 @@ export default function AuthPage() {
           <Logo tone="light" />
 
           <div className="mt-8 lg:mt-auto lg:mb-auto max-w-lg">
-            {FREE_ACCESS && (
+            {!PAYMENTS_ENABLED && (
               <span className="inline-flex items-center gap-2 text-sm font-semibold bg-white/15 border border-white/20 rounded-full px-3.5 py-1.5 mb-5">
                 <span className="w-2 h-2 rounded-full bg-emerald-300" />
-                Free to use for a limited time
+                Free during launch: {FREE_NOTES} notes per account
               </span>
             )}
             <h1 className="text-[1.75rem] leading-tight sm:text-4xl font-extrabold tracking-tight">
@@ -177,9 +177,7 @@ export default function AuthPage() {
                     ? 'Sign in to write and find your care notes.'
                     : mode === 'forgot'
                     ? "Enter your email and we'll send you a link to set a new password."
-                    : FREE_ACCESS
-                    ? 'Free for a limited time. No card needed.'
-                    : 'Your first 2 notes are free. No card needed.'}
+                    : `Your first ${FREE_NOTES} notes are free. No card needed.`}
                 </p>
               </div>
 
@@ -308,10 +306,9 @@ export default function AuthPage() {
                 </form>
               </div>
 
-              {mode === 'signup' && !FREE_ACCESS && (
+              {mode === 'signup' && PAYMENTS_ENABLED && (
                 <p className="mt-4 text-sm text-slate-600 text-center">
-                  2 free notes included.{' '}
-                  {PAYMENTS_ENABLED ? 'Paid plans from £1.99.' : 'Paid plans coming soon.'}
+                  Paid plans from £1.99.
                 </p>
               )}
             </>

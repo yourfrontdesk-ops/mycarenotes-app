@@ -54,13 +54,13 @@ ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users can read own subscription" ON public.user_subscriptions;
 CREATE POLICY "Users can read own subscription" ON public.user_subscriptions FOR SELECT TO authenticated USING (auth.uid() = user_id);
 
--- 3. Give every new sign-up 2 free credits ----------------------------------
+-- 3. Give every new sign-up 5 free notes ----------------------------------
 CREATE OR REPLACE FUNCTION public.handle_new_user_credit()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
   INSERT INTO public.user_credits (user_id, credits)
-  VALUES (NEW.id, 2)
+  VALUES (NEW.id, 5)
   ON CONFLICT (user_id) DO NOTHING;
   RETURN NEW;
 END;
