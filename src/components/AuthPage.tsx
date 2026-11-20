@@ -85,21 +85,21 @@ export default function AuthPage() {
         <div className="absolute -top-32 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 -left-24 w-80 h-80 rounded-full bg-brand-400/20 blur-3xl pointer-events-none" />
 
-        <div className="relative px-6 py-6 sm:px-10 lg:px-14 lg:py-14 lg:h-full flex flex-col">
-          <Logo tone="light" />
+        <div className="relative px-6 py-6 sm:px-10 lg:px-14 lg:py-14 lg:h-full flex flex-col w-full max-w-2xl mx-auto">
+          <div className="lg:mb-10"><Logo tone="light" /></div>
 
-          <div className="mt-8 lg:mt-auto lg:mb-auto max-w-lg">
+          <div className="mt-8 lg:mt-auto lg:mb-auto">
             {!PAYMENTS_ENABLED && (
               <span className="inline-flex items-center gap-2 text-sm font-semibold bg-white/15 border border-white/20 rounded-full px-3.5 py-1.5 mb-5">
                 <span className="w-2 h-2 rounded-full bg-emerald-300" />
                 Free during launch: {FREE_NOTES} notes per account
               </span>
             )}
-            <h1 className="text-[1.75rem] leading-tight sm:text-4xl font-extrabold tracking-tight">
+            <h1 className="text-[1.75rem] leading-tight sm:text-4xl xl:text-[2.75rem] xl:leading-[1.12] font-extrabold tracking-tight">
               Less time on paperwork.<br />
               <span className="text-brand-100">More time for care.</span>
             </h1>
-            <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed">
+            <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed text-pretty">
               Note down a few quick points from your shift, and myCareNotes writes them up as a clear,
               person-centred care note in seconds. You check it, make any changes, and approve it when
               you're happy.
@@ -134,12 +134,12 @@ export default function AuthPage() {
 
           <a
             href={`mailto:${SUPPORT_EMAIL}?subject=myCareNotes%20for%20our%20care%20service`}
-            className="mt-8 hidden lg:flex items-center gap-3 bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl px-5 py-4 transition-colors max-w-lg"
+            className="mt-8 hidden lg:flex items-center gap-3 bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl px-5 py-4 transition-colors"
           >
             <Building2 size={20} className="text-brand-100 flex-shrink-0" />
             <span className="text-sm leading-relaxed">
               <span className="font-semibold">Run a care service?</span>{' '}
-              <span className="text-brand-50/85">Get in touch to set up myCareNotes for your team.</span>
+              <span className="text-brand-50/85">Ask us about team access.</span>
             </span>
             <ArrowRight size={16} className="ml-auto flex-shrink-0" />
           </a>
