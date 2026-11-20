@@ -96,12 +96,13 @@ export default function AuthPage() {
               </span>
             )}
             <h1 className="text-[1.75rem] leading-tight sm:text-4xl font-extrabold tracking-tight">
-              Professional care notes,<br />
-              <span className="text-brand-100">written with you.</span>
+              Less time on paperwork.<br />
+              <span className="text-brand-100">More time for care.</span>
             </h1>
             <p className="mt-4 text-brand-50/90 text-base sm:text-lg leading-relaxed">
-              Add your observations from the shift and myCareNotes drafts a clear, person-centred
-              record in UK English. You review it, make any changes and approve it before it is used.
+              Note down a few quick points from your shift, and myCareNotes writes them up as a clear,
+              person-centred care note in seconds. You check it, make any changes, and approve it when
+              you're happy.
             </p>
 
             {/* How it works — hidden on small phones to keep the form close to the top */}
