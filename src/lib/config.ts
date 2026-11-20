@@ -4,4 +4,4 @@ export const PAYMENTS_ENABLED = import.meta.env.VITE_PAYMENTS_ENABLED === 'true'
 // Launch offer: free notes per account (the server-side number is set in supabase/free-notes-5.sql)
 export const FREE_NOTES = 5;
 
-export const SUPPORT_EMAIL = 'help@mycarenotes.co.uk';
+export const SUPPORT_EMAIL = 'hello@mycarenotes.co.uk';
